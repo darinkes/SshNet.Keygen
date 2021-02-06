@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshNet.Keygen", "SshNet.Keygen\SshNet.Keygen.csproj", "{6594A3E4-6C7D-417F-B747-B7D575E9548D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshNet.Keygen.Tests", "SshNet.Keygen.Tests\SshNet.Keygen.Tests.csproj", "{31099C96-8C73-429A-9915-B6C185A4EB1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshNet.Keygen.Sample", "SshNet.Keygen.Sample\SshNet.Keygen.Sample.csproj", "{2BE5F3C1-0DEA-4082-90CD-9C760F834F32}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6594A3E4-6C7D-417F-B747-B7D575E9548D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6594A3E4-6C7D-417F-B747-B7D575E9548D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6594A3E4-6C7D-417F-B747-B7D575E9548D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6594A3E4-6C7D-417F-B747-B7D575E9548D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31099C96-8C73-429A-9915-B6C185A4EB1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31099C96-8C73-429A-9915-B6C185A4EB1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31099C96-8C73-429A-9915-B6C185A4EB1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31099C96-8C73-429A-9915-B6C185A4EB1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BE5F3C1-0DEA-4082-90CD-9C760F834F32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BE5F3C1-0DEA-4082-90CD-9C760F834F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BE5F3C1-0DEA-4082-90CD-9C760F834F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BE5F3C1-0DEA-4082-90CD-9C760F834F32}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
