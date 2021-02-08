@@ -19,6 +19,16 @@ namespace SshNet.Keygen.Extensions
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshPublicFormat(comment);
         }
 
+        public static string Fingerprint(this PrivateKeyFile keyFile, string comment = "")
+        {
+            return keyFile.Fingerprint(HashAlgorithmName.SHA256, comment);
+        }
+
+        public static string Fingerprint(this PrivateKeyFile keyFile, HashAlgorithmName hashAlgorithm,  string comment = "")
+        {
+            return ((KeyHostAlgorithm) keyFile.HostKey).Key.Fingerprint(hashAlgorithm, comment);
+        }
+
         public static string ToOpenSshFormat(this Key key, string comment = "")
         {
             var s = new StringWriter();
@@ -36,18 +46,7 @@ namespace SshNet.Keygen.Extensions
             var base64 = Convert.ToBase64String(pubStream.GetBuffer(), 0, (int)pubStream.Length).ToCharArray();
 
             var stringBuilder = new StringBuilder();
-            switch (key)
-            {
-                case ED25519Key ed25519:
-                    stringBuilder.Append("ssh-ed25519");
-                    break;
-                case RsaKey rsa:
-                    stringBuilder.Append("ssh-rsa");
-                    break;
-                case EcdsaKey ecdsa:
-                    stringBuilder.Append($"ecdsa-sha2-{ecdsa.Ecdsa.EcCurveNameSshCompat()}");
-                    break;
-            }
+            stringBuilder.Append(key);
             stringBuilder.Append(' ');
             stringBuilder.Append(base64);
             if (!string.IsNullOrEmpty(comment))
@@ -59,16 +58,53 @@ namespace SshNet.Keygen.Extensions
             return stringBuilder.ToString();
         }
 
-        private static void PublicKeyData(this Key key, BinaryWriter writer)
+        public static string Fingerprint(this Key key, HashAlgorithmName hashAlgorithm, string comment = "")
+        {
+            // SHA256 of PublicKey-Data
+            using var pubStream = new MemoryStream();
+            using var pubWriter = new BinaryWriter(pubStream);
+            key.PublicKeyData(pubWriter);
+            byte[] pubKeyHash;
+
+            using (var hash = HashAlgorithm.Create(hashAlgorithm.Name))
+            {
+                if (hash == null)
+                    throw new CryptographicException($"Unsupported HashAlgorithmName: {hashAlgorithm.Name}");
+                pubKeyHash = hash.ComputeHash(pubStream.GetBuffer(), 0, (int)pubStream.Length);
+            }
+
+            // base64 without padding or Hex
+            var base64 = hashAlgorithm == HashAlgorithmName.MD5 ?
+                BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':') :
+                Convert.ToBase64String(pubKeyHash, 0, (int)pubKeyHash.Length).TrimEnd('=');
+
+            return $"{key.KeyLength} {hashAlgorithm.Name}:{base64} {comment} ({key.KeyName()})";
+        }
+
+        private static string KeyName(this Key key)
         {
             switch (key)
             {
+                case ED25519Key:
+                    return "ED25519";
+                case RsaKey:
+                    return "RSA";
+                case EcdsaKey:
+                    return "ECDSA";
+            }
+
+            throw new Exception("Unknown KeyType");
+        }
+
+        private static void PublicKeyData(this Key key, BinaryWriter writer)
+        {
+            EncodeString(writer, key.ToString());
+            switch (key)
+            {
                 case ED25519Key ed25519:
-                    EncodeString(writer, "ssh-ed25519");
                     EncodeBignum2(writer, ed25519.PublicKey);
                     break;
                 case RsaKey rsa:
-                    EncodeString(writer, "ssh-rsa");
                     EncodeBignum2(writer, rsa.Exponent.ToByteArray().Reverse());
                     EncodeBignum2(writer, rsa.Modulus.ToByteArray().Reverse());
                     break;
@@ -102,15 +138,14 @@ namespace SshNet.Keygen.Extensions
             var rnd = new Random().Next(0, int.MaxValue);
             EncodeInt(privWriter, rnd); // check-int1
             EncodeInt(privWriter, rnd); // check-int2
+            EncodeString(privWriter, key.ToString());
             switch (key)
             {
                 case ED25519Key ed25519:
-                    EncodeString(privWriter, "ssh-ed25519");
                     EncodeBignum2(privWriter, ed25519.PublicKey);
                     EncodeBignum2(privWriter, ed25519.PrivateKey);
                     break;
                 case RsaKey rsa:
-                    EncodeString(privWriter, "ssh-rsa");
                     EncodeBignum2(privWriter, rsa.Modulus.ToByteArray().Reverse());
                     EncodeBignum2(privWriter, rsa.Exponent.ToByteArray().Reverse());
                     EncodeBignum2(privWriter, rsa.D.ToByteArray().Reverse());
@@ -153,7 +188,6 @@ namespace SshNet.Keygen.Extensions
             Buffer.BlockCopy(ecdsaParameters.Q.X, 0, q, 1, ecdsaParameters.Q.X.Length);
             Buffer.BlockCopy(ecdsaParameters.Q.Y, 0, q, ecdsaParameters.Q.X.Length + 1, ecdsaParameters.Q.Y.Length);
 
-            EncodeString(writer, $"ecdsa-sha2-{ecdsa.EcCurveNameSshCompat()}");
             EncodeString(writer, ecdsa.EcCurveNameSshCompat());
             EncodeString(writer, q);
             if (includePrivate)

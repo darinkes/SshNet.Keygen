@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Resources;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 using Renci.SshNet;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
@@ -14,7 +13,7 @@ namespace SshNet.Keygen.Tests
     {
         private void KeyGenTest<T>(SshKeyInfo keyInfo)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 3; i++)
             {
                 var key = SshKey.Generate(keyInfo);
                 if (keyInfo.KeyLength != 0)
@@ -80,6 +79,17 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void GenerateRSA8192()
+        {
+            var keyInfo = new SshKeyInfo
+            {
+                KeyType = KeyType.RSA,
+                KeyLength = 8192
+            };
+            KeyGenTest<RsaKey>(keyInfo);
+        }
+
+        [Test]
         public void GenerateEcdsa256()
         {
             var keyInfo = new SshKeyInfo
@@ -121,60 +131,83 @@ namespace SshNet.Keygen.Tests
             }
         }
 
-        private void TestFormatKey<T>(string keyname)
+        private void TestFormatKey<T>(string keyname, int keyLength)
         {
             var keydata = GetKey(keyname);
-            var pubkeydata = GetKey(string.Format("{0}.pub", keyname));
+            var pubkeydata = GetKey($"{keyname}.pub");
+            var fpMd5Data = GetKey($"{keyname}.fingerprint.md5");
+            var fpSha1Data = GetKey($"{keyname}.fingerprint.sha1");
+            var fpSha256Data = GetKey($"{keyname}.fingerprint.sha256");
+            var fpSha384Data = GetKey($"{keyname}.fingerprint.sha384");
+            var fpSha512Data = GetKey($"{keyname}.fingerprint.sha512");
             var keyFile = new PrivateKeyFile(keydata.ToStream());
             var key = ((KeyHostAlgorithm) keyFile.HostKey).Key;
 
             Assert.IsInstanceOf<T>(key);
+            Assert.AreEqual(keyLength, key.KeyLength);
             Assert.AreEqual(pubkeydata.Trim(), keyFile.ToOpenSshPublicFormat().Trim());
+            Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint().Trim());
+            Assert.AreEqual(fpMd5Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.MD5).Trim());
+            Assert.AreEqual(fpSha1Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA1).Trim());
+            Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA256).Trim());
+            Assert.AreEqual(fpSha384Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA384).Trim());
+            Assert.AreEqual(fpSha512Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA512).Trim());
 
             // XXX: We cannot test the result of the PrivateKey Export, since Random CheckInts are random...
+            //      So just check the key can be reimport again.
             // Assert.AreEqual(keydata.Trim(), keyFile.ToOpenSshFormat().Trim());
+            Assert.DoesNotThrow(() =>
+            {
+                new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
+            });
         }
 
         [Test]
         public void TestRSA2048()
         {
-            TestFormatKey<RsaKey>("RSA2048");
+            TestFormatKey<RsaKey>("RSA2048", 2048);
         }
 
         [Test]
         public void TestRSA3072()
         {
-            TestFormatKey<RsaKey>("RSA3072");
+            TestFormatKey<RsaKey>("RSA3072", 3072);
         }
 
         [Test]
         public void TestRSA4096()
         {
-            TestFormatKey<RsaKey>("RSA4096");
+            TestFormatKey<RsaKey>("RSA4096", 4096);
+        }
+
+        [Test]
+        public void TestRSA8192()
+        {
+            TestFormatKey<RsaKey>("RSA8192", 8192);
         }
 
         [Test]
         public void TestECDSA256()
         {
-            TestFormatKey<EcdsaKey>("ECDSA256");
+            TestFormatKey<EcdsaKey>("ECDSA256", 256);
         }
 
         [Test]
         public void TestECDSA384()
         {
-            TestFormatKey<EcdsaKey>("ECDSA384");
+            TestFormatKey<EcdsaKey>("ECDSA384", 384);
         }
 
         [Test]
         public void TestECDSA521()
         {
-            TestFormatKey<EcdsaKey>("ECDSA521");
+            TestFormatKey<EcdsaKey>("ECDSA521", 521);
         }
 
         [Test]
         public void TestED25519()
         {
-            TestFormatKey<ED25519Key>("ED25519");
+            TestFormatKey<ED25519Key>("ED25519", 256);
         }
     }
 }
