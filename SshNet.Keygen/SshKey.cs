@@ -8,19 +8,26 @@ namespace SshNet.Keygen
 {
     public static class SshKey
     {
-        public static Key Generate(SshKeyInfo sshKeyInfo)
+        public static Key Generate()
         {
-            switch (sshKeyInfo.KeyType)
+            return Generate<RsaKey>(2048);
+        }
+
+        public static Key Generate<T>(int keyLength = 0)
+        {
+            switch (Activator.CreateInstance(typeof(T)))
             {
-                case KeyType.ED25519:
+                case ED25519Key:
+                    if (keyLength != 0)
+                        throw new CryptographicException("KeyLength is not valid for ED25519Key");
                     var rngCsp = new RNGCryptoServiceProvider();
                     var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
                     rngCsp.GetBytes(seed);
                     Ed25519.KeyPairFromSeed(out var edPubKey, out var edKey, seed);
 
                     return new ED25519Key(edPubKey, edKey);
-                case KeyType.RSA:
-                    var rsa = CreateRSA(sshKeyInfo.KeyLength);
+                case RsaKey:
+                    var rsa = CreateRSA(keyLength);
                     var rsaParameters = rsa.ExportParameters(true);
 
                     return new RsaKey(
@@ -31,8 +38,8 @@ namespace SshNet.Keygen
                         rsaParameters.Q.ToBigInteger2(),
                         rsaParameters.InverseQ.ToBigInteger2()
                     );
-                case KeyType.ECDSA:
-                    var curve = sshKeyInfo.KeyLength switch
+                case EcdsaKey:
+                    var curve = keyLength switch
                     {
                         256 => ECCurve.CreateFromFriendlyName("nistp256"),
                         384 => ECCurve.CreateFromFriendlyName("nistp384"),
@@ -50,7 +57,7 @@ namespace SshNet.Keygen
 
                     return new EcdsaKey(ecdsa.EcCurveNameSshCompat(), q, ecdsaParameters.D);
                 default:
-                    throw new CryptographicException("Unknown KeyType");
+                    throw new CryptographicException("Unsupported KeyType");
             }
         }
 
