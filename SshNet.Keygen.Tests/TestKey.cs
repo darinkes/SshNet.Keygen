@@ -33,11 +33,11 @@ namespace SshNet.Keygen.Tests
             });
         }
 
-        private void KeyGenTest<T>(int keyLength = 0)
+        private void KeyGenTest<TKey>(int keyLength = 0) where TKey : Key, new()
         {
             for (int i = 0; i < 3; i++)
             {
-                var key = SshKey.Generate<T>(keyLength);
+                var key = SshKey.Generate<TKey>(keyLength);
                 if (keyLength != 0)
                     Assert.AreEqual(keyLength, (key.KeyLength));
 
@@ -51,7 +51,7 @@ namespace SshNet.Keygen.Tests
                 // File.WriteAllText("test-key.pub", publicKey);
 
                 var keyFile = new PrivateKeyFile(privateKey.ToStream());
-                Assert.IsInstanceOf<T>(((KeyHostAlgorithm) keyFile.HostKey).Key);
+                Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKey).Key);
                 if (keyLength != 0)
                     Assert.AreEqual(keyLength, (((KeyHostAlgorithm) keyFile.HostKey).Key.KeyLength));
             }

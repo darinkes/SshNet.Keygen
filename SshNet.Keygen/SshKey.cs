@@ -13,9 +13,9 @@ namespace SshNet.Keygen
             return Generate<RsaKey>(2048);
         }
 
-        public static Key Generate<T>(int keyLength = 0)
+        public static Key Generate<TKey>(int keyLength = 0) where TKey : Key, new()
         {
-            switch (Activator.CreateInstance(typeof(T)))
+            switch (Activator.CreateInstance(typeof(TKey)))
             {
                 case ED25519Key:
                     if (keyLength != 0)
