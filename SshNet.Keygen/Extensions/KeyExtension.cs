@@ -4,21 +4,12 @@ using System.Security.Cryptography;
 using System.Text;
 using Renci.SshNet;
 using Renci.SshNet.Security;
+using SshNet.Keygen.SshKeyEncryption;
 
 namespace SshNet.Keygen.Extensions
 {
     public static class KeyExtension
     {
-        public static string ToOpenSshFormat(this PrivateKeyFile keyFile, string comment = "")
-        {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(comment);
-        }
-
-        public static string ToOpenSshPublicFormat(this PrivateKeyFile keyFile, string comment = "")
-        {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshPublicFormat(comment);
-        }
-
         public static string Fingerprint(this PrivateKeyFile keyFile, string comment = "")
         {
             return keyFile.Fingerprint(HashAlgorithmName.SHA256, comment);
@@ -29,13 +20,33 @@ namespace SshNet.Keygen.Extensions
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.Fingerprint(hashAlgorithm, comment);
         }
 
+        public static string ToOpenSshFormat(this PrivateKeyFile keyFile, string comment = "")
+        {
+            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(new SshKeyEncryptionNone(), comment);
+        }
+
+        public static string ToOpenSshFormat(this PrivateKeyFile keyFile, ISshKeyEncryption encryption, string comment = "")
+        {
+            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(encryption, comment);
+        }
+
         public static string ToOpenSshFormat(this Key key, string comment = "")
+        {
+            return key.ToOpenSshFormat(new SshKeyEncryptionNone(), comment);
+        }
+
+        public static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption, string comment = "")
         {
             var s = new StringWriter();
             s.Write("-----BEGIN OPENSSH PRIVATE KEY-----\n");
-            s.Write(key.KeyData(comment));
+            s.Write(key.PrivateKeyData(encryption, comment));
             s.Write("-----END OPENSSH PRIVATE KEY-----\n");
             return s.ToString();
+        }
+
+        public static string ToOpenSshPublicFormat(this PrivateKeyFile keyFile, string comment = "")
+        {
+            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshPublicFormat(comment);
         }
 
         public static string ToOpenSshPublicFormat(this Key key, string comment = "")
@@ -98,75 +109,76 @@ namespace SshNet.Keygen.Extensions
 
         private static void PublicKeyData(this Key key, BinaryWriter writer)
         {
-            EncodeString(writer, key.ToString());
+            writer.EncodeString(key.ToString());
             switch (key)
             {
                 case ED25519Key ed25519:
-                    EncodeBignum2(writer, ed25519.PublicKey);
+                    writer.EncodeBignum2(ed25519.PublicKey);
                     break;
                 case RsaKey rsa:
-                    EncodeBignum2(writer, rsa.Exponent.ToByteArray().Reverse());
-                    EncodeBignum2(writer, rsa.Modulus.ToByteArray().Reverse());
+                    writer.EncodeBignum2(rsa.Exponent.ToByteArray().Reverse());
+                    writer.EncodeBignum2(rsa.Modulus.ToByteArray().Reverse());
                     break;
                 case EcdsaKey ecdsa:
-                    EncodeEcKey(writer, ecdsa.Ecdsa, false);
+                    writer.EncodeEcKey(ecdsa.Ecdsa, false);
                     break;
             }
         }
 
-        private static string KeyData(this Key key, string comment)
+        private static string PrivateKeyData(this Key key, ISshKeyEncryption encryption, string comment)
         {
             using var stream = new MemoryStream();
             using var writer = new BinaryWriter(stream);
 
-            EncodeNullTerminatedString(writer,"openssh-key-v1"); // Auth Magic
-            EncodeString(writer, "none"); // cipher name
-            EncodeString(writer, "none"); // kdf name
-            EncodeString(writer, ""); // kdf options
-            EncodeUInt(writer, 1); // Number of Keys
+            writer.EncodeNullTerminatedString("openssh-key-v1"); // Auth Magic
+            writer.EncodeString(encryption.CipherName);
+            writer.EncodeString(encryption.KdfName);
+            writer.EncodeString(encryption.KdfOptions());
+            writer.EncodeUInt(1); // Number of Keys
 
             // public key in ssh-format
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
             key.PublicKeyData(pubWriter);
-            EncodeString(writer, pubStream);
+            writer.EncodeString(pubStream);
 
             // private key
             using var privStream = new MemoryStream();
             using var privWriter = new BinaryWriter(privStream);
 
             var rnd = new Random().Next(0, int.MaxValue);
-            EncodeInt(privWriter, rnd); // check-int1
-            EncodeInt(privWriter, rnd); // check-int2
-            EncodeString(privWriter, key.ToString());
+            privWriter.EncodeInt(rnd); // check-int1
+            privWriter.EncodeInt(rnd); // check-int2
+            privWriter.EncodeString(key.ToString());
             switch (key)
             {
                 case ED25519Key ed25519:
-                    EncodeBignum2(privWriter, ed25519.PublicKey);
-                    EncodeBignum2(privWriter, ed25519.PrivateKey);
+                    privWriter.EncodeBignum2(ed25519.PublicKey);
+                    privWriter.EncodeBignum2(ed25519.PrivateKey);
                     break;
                 case RsaKey rsa:
-                    EncodeBignum2(privWriter, rsa.Modulus.ToByteArray().Reverse());
-                    EncodeBignum2(privWriter, rsa.Exponent.ToByteArray().Reverse());
-                    EncodeBignum2(privWriter, rsa.D.ToByteArray().Reverse());
-                    EncodeBignum2(privWriter, rsa.InverseQ.ToByteArray().Reverse());
-                    EncodeBignum2(privWriter, rsa.P.ToByteArray().Reverse());
-                    EncodeBignum2(privWriter, rsa.Q.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(rsa.Modulus.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(rsa.Exponent.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(rsa.D.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(rsa.InverseQ.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(rsa.P.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(rsa.Q.ToByteArray().Reverse());
                     break;
                 case EcdsaKey ecdsa:
-                    EncodeEcKey(privWriter, ecdsa.Ecdsa, true);
+                    privWriter.EncodeEcKey(ecdsa.Ecdsa, true);
                     break;
             }
             // comment
-            EncodeString(privWriter, comment);
+            privWriter.EncodeString(comment);
 
             // private key padding (1, 2, 3, ...)
             var pad = 0;
-            while (privStream.Length % 8 != 0)
+            while (privStream.Length % encryption.BlockSize != 0)
             {
                 privWriter.Write((byte)++pad);
             }
-            EncodeString(writer, privStream);
+
+            writer.EncodeString(encryption.Encrypt(privStream.GetBuffer(), 0, (int)privStream.Length));
 
             // Content as Base64
             var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
@@ -178,66 +190,6 @@ namespace SshNet.Keygen.Extensions
             }
 
             return pem.ToString();
-        }
-
-        private static void EncodeEcKey(BinaryWriter writer, ECDsa ecdsa, bool includePrivate)
-        {
-            var ecdsaParameters = ecdsa.ExportParameters(includePrivate);
-
-            EncodeString(writer, ecdsa.EcCurveNameSshCompat());
-            EncodeString(writer, ecdsaParameters.UncompressedCoords());
-            if (includePrivate)
-                EncodeBignum2(writer, ecdsaParameters.D);
-        }
-
-        private static void EncodeNullTerminatedString(BinaryWriter writer, string str)
-        {
-            writer.Write(Encoding.ASCII.GetBytes(str));
-            writer.Write('\0');
-        }
-
-        private static void EncodeString(BinaryWriter writer, string str)
-        {
-            EncodeString(writer, Encoding.ASCII.GetBytes(str));
-        }
-
-        private static void EncodeString(BinaryWriter writer, MemoryStream str)
-        {
-            EncodeString(writer, str.GetBuffer(), 0, (int)str.Length);
-        }
-
-        private static void EncodeString(BinaryWriter writer, byte[] str)
-        {
-            EncodeUInt(writer, (uint)str.Length);
-            writer.Write(str);
-        }
-
-        private static void EncodeString(BinaryWriter writer, byte[] str, int offset, int length)
-        {
-            EncodeUInt(writer, (uint)length);
-            writer.Write(str, offset, length);
-        }
-
-        private static void EncodeBignum2(BinaryWriter writer, byte[] data)
-        {
-            EncodeUInt(writer, (uint)data.Length);
-            writer.Write(data);
-        }
-
-        private static void EncodeUInt(BinaryWriter writer, uint i)
-        {
-            var data = BitConverter.GetBytes(i);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(data);
-            writer.Write(data);
-        }
-
-        private static void EncodeInt(BinaryWriter writer, int i)
-        {
-            var data = BitConverter.GetBytes(i);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(data);
-            writer.Write(data);
         }
     }
 }
