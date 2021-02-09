@@ -183,13 +183,9 @@ namespace SshNet.Keygen.Extensions
         private static void EncodeEcKey(BinaryWriter writer, ECDsa ecdsa, bool includePrivate)
         {
             var ecdsaParameters = ecdsa.ExportParameters(includePrivate);
-            var q = new byte[1 + ecdsaParameters.Q.X.Length + ecdsaParameters.Q.Y.Length];
-            Buffer.SetByte(q, 0, 4); // Uncompressed
-            Buffer.BlockCopy(ecdsaParameters.Q.X, 0, q, 1, ecdsaParameters.Q.X.Length);
-            Buffer.BlockCopy(ecdsaParameters.Q.Y, 0, q, ecdsaParameters.Q.X.Length + 1, ecdsaParameters.Q.Y.Length);
 
             EncodeString(writer, ecdsa.EcCurveNameSshCompat());
-            EncodeString(writer, q);
+            EncodeString(writer, ecdsaParameters.UncompressedCoords());
             if (includePrivate)
                 EncodeBignum2(writer, ecdsaParameters.D);
         }

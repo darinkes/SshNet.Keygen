@@ -50,12 +50,7 @@ namespace SshNet.Keygen
                     var ecdsa = ECDsa.Create(curve);
                     var ecdsaParameters = ecdsa.ExportParameters(true);
 
-                    var q = new byte[1 + ecdsaParameters.Q.X.Length + ecdsaParameters.Q.Y.Length];
-                    Buffer.SetByte(q, 0, 4); // Uncompressed
-                    Buffer.BlockCopy(ecdsaParameters.Q.X, 0, q, 1, ecdsaParameters.Q.X.Length);
-                    Buffer.BlockCopy(ecdsaParameters.Q.Y, 0, q, ecdsaParameters.Q.X.Length + 1, ecdsaParameters.Q.Y.Length);
-
-                    return new EcdsaKey(ecdsa.EcCurveNameSshCompat(), q, ecdsaParameters.D);
+                    return new EcdsaKey(ecdsa.EcCurveNameSshCompat(), ecdsaParameters.UncompressedCoords(), ecdsaParameters.D);
                 default:
                     throw new CryptographicException("Unsupported KeyType");
             }
