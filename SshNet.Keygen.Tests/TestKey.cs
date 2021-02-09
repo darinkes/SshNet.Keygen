@@ -114,8 +114,11 @@ namespace SshNet.Keygen.Tests
             }
         }
 
-        private void TestFormatKey<T>(string keyname, int keyLength)
+        private void TestFormatKey<T>(string keyname, int keyLength, string passphrase = null)
         {
+            if (!string.IsNullOrEmpty(passphrase))
+                keyname = $"{keyname}.encrypted";
+
             var keydata = GetKey(keyname);
             var pubkeydata = GetKey($"{keyname}.pub");
             var fpMd5Data = GetKey($"{keyname}.fingerprint.md5");
@@ -123,7 +126,10 @@ namespace SshNet.Keygen.Tests
             var fpSha256Data = GetKey($"{keyname}.fingerprint.sha256");
             var fpSha384Data = GetKey($"{keyname}.fingerprint.sha384");
             var fpSha512Data = GetKey($"{keyname}.fingerprint.sha512");
-            var keyFile = new PrivateKeyFile(keydata.ToStream());
+            var keyFile = string.IsNullOrEmpty(passphrase) ?
+                new PrivateKeyFile(keydata.ToStream()) :
+                new PrivateKeyFile(keydata.ToStream(), passphrase);
+
             var key = ((KeyHostAlgorithm) keyFile.HostKey).Key;
 
             Assert.IsInstanceOf<T>(key);
@@ -149,48 +155,56 @@ namespace SshNet.Keygen.Tests
         public void TestRSA2048()
         {
             TestFormatKey<RsaKey>("RSA2048", 2048);
+            TestFormatKey<RsaKey>("RSA2048", 2048, "12345");
         }
 
         [Test]
         public void TestRSA3072()
         {
             TestFormatKey<RsaKey>("RSA3072", 3072);
+            TestFormatKey<RsaKey>("RSA3072", 3072, "12345");
         }
 
         [Test]
         public void TestRSA4096()
         {
             TestFormatKey<RsaKey>("RSA4096", 4096);
+            TestFormatKey<RsaKey>("RSA4096", 4096, "12345");
         }
 
         [Test]
         public void TestRSA8192()
         {
             TestFormatKey<RsaKey>("RSA8192", 8192);
+            TestFormatKey<RsaKey>("RSA8192", 8192, "12345");
         }
 
         [Test]
         public void TestECDSA256()
         {
             TestFormatKey<EcdsaKey>("ECDSA256", 256);
+            TestFormatKey<EcdsaKey>("ECDSA256", 256, "12345");
         }
 
         [Test]
         public void TestECDSA384()
         {
             TestFormatKey<EcdsaKey>("ECDSA384", 384);
+            TestFormatKey<EcdsaKey>("ECDSA384", 384, "12345");
         }
 
         [Test]
         public void TestECDSA521()
         {
             TestFormatKey<EcdsaKey>("ECDSA521", 521);
+            TestFormatKey<EcdsaKey>("ECDSA521", 521, "12345");
         }
 
         [Test]
         public void TestED25519()
         {
             TestFormatKey<ED25519Key>("ED25519", 256);
+            TestFormatKey<ED25519Key>("ED25519", 256, "12345");
         }
     }
 }
