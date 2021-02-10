@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using Chaos.NaCl;
 using Renci.SshNet.Security;
@@ -12,9 +13,31 @@ namespace SshNet.Keygen
         internal static readonly HashAlgorithmName DefaultHashAlgorithmName = HashAlgorithmName.SHA256;
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
 
-        public static Key Generate()
+        public static Key Generate(int keyLength = 2048)
         {
-            return Generate<RsaKey>(2048);
+            return Generate<RsaKey>(keyLength);
+        }
+
+        public static void Generate(string path, int keyLength = 2048, string comment = "")
+        {
+            Generate<RsaKey>(path,  DefaultSshKeyEncryption, keyLength, comment);
+        }
+
+        public static void Generate(string path, ISshKeyEncryption encryption, int keyLength = 2048, string comment = "")
+        {
+            Generate<RsaKey>(path, encryption, keyLength, comment);
+        }
+
+        public static void Generate<TKey>(string path, int keyLength = 0, string comment = "") where TKey : Key, new()
+        {
+            Generate<TKey>(path, DefaultSshKeyEncryption, keyLength, comment);
+        }
+
+        public static void Generate<TKey>(string path, ISshKeyEncryption encryption, int keyLength = 0, string comment = "") where TKey : Key, new()
+        {
+            var key = Generate<TKey>(keyLength);
+            File.WriteAllText(path, key.ToOpenSshFormat(encryption, comment));
+            File.WriteAllText($"{path}.pub", key.ToOpenSshPublicFormat(comment));
         }
 
         public static Key Generate<TKey>(int keyLength = 0) where TKey : Key, new()
