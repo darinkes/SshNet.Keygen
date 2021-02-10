@@ -10,29 +10,9 @@ namespace SshNet.Keygen.Extensions
 {
     public static class KeyExtension
     {
-        public static string Fingerprint(this PrivateKeyFile keyFile, string comment = "")
-        {
-            return keyFile.Fingerprint(HashAlgorithmName.SHA256, comment);
-        }
-
-        public static string Fingerprint(this PrivateKeyFile keyFile, HashAlgorithmName hashAlgorithm,  string comment = "")
-        {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.Fingerprint(hashAlgorithm, comment);
-        }
-
-        public static string ToOpenSshFormat(this PrivateKeyFile keyFile, string comment = "")
-        {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(new SshKeyEncryptionNone(), comment);
-        }
-
-        public static string ToOpenSshFormat(this PrivateKeyFile keyFile, ISshKeyEncryption encryption, string comment = "")
-        {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(encryption, comment);
-        }
-
         public static string ToOpenSshFormat(this Key key, string comment = "")
         {
-            return key.ToOpenSshFormat(new SshKeyEncryptionNone(), comment);
+            return key.ToOpenSshFormat(SshKey.DefaultSshKeyEncryption, comment);
         }
 
         public static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption, string comment = "")
@@ -42,11 +22,6 @@ namespace SshNet.Keygen.Extensions
             s.Write(key.PrivateKeyData(encryption, comment));
             s.Write("-----END OPENSSH PRIVATE KEY-----\n");
             return s.ToString();
-        }
-
-        public static string ToOpenSshPublicFormat(this PrivateKeyFile keyFile, string comment = "")
-        {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshPublicFormat(comment);
         }
 
         public static string ToOpenSshPublicFormat(this Key key, string comment = "")
@@ -67,6 +42,11 @@ namespace SshNet.Keygen.Extensions
             }
             stringBuilder.Append('\n');
             return stringBuilder.ToString();
+        }
+
+        public static string Fingerprint(this Key key, string comment = "")
+        {
+            return key.Fingerprint(SshKey.DefaultHashAlgorithmName, comment);
         }
 
         public static string Fingerprint(this Key key, HashAlgorithmName hashAlgorithm, string comment = "")

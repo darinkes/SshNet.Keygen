@@ -3,11 +3,15 @@ using System.Security.Cryptography;
 using Chaos.NaCl;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
+using SshNet.Keygen.SshKeyEncryption;
 
 namespace SshNet.Keygen
 {
     public static class SshKey
     {
+        internal static readonly HashAlgorithmName DefaultHashAlgorithmName = HashAlgorithmName.SHA256;
+        internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
+
         public static Key Generate()
         {
             return Generate<RsaKey>(2048);
