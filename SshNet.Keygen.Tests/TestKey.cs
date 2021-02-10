@@ -31,11 +31,11 @@ namespace SshNet.Keygen.Tests
             Assert.AreEqual(2048, key.KeyLength);
             Assert.DoesNotThrow(() =>
             {
-                new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
+                _ = new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
             });
         }
 
-        private void KeyGenTest<TKey>(int keyLength = 0) where TKey : Key, new()
+        private static void KeyGenTest<TKey>(int keyLength = 0) where TKey : Key, new()
         {
             const string password = "12345";
             var cases = new List<ISshKeyEncryption>()
@@ -118,11 +118,9 @@ namespace SshNet.Keygen.Tests
 
         private string GetKey(string keyname)
         {
-            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(string.Format("SshNet.Keygen.Tests.TestKeys.{0}", keyname));
-            using (var reader = new StreamReader(resourceStream, Encoding.ASCII))
-            {
-                return reader.ReadToEnd();
-            }
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.Keygen.Tests.TestKeys.{keyname}");
+            using var reader = new StreamReader(resourceStream, Encoding.ASCII);
+            return reader.ReadToEnd();
         }
 
         private void TestFormatKey<T>(string keyname, int keyLength, string passphrase = null)
@@ -159,7 +157,7 @@ namespace SshNet.Keygen.Tests
                 : keyFile.ToOpenSshFormat(new SshKeyEncryptionAes256(passphrase));
             Assert.DoesNotThrow(() =>
             {
-                new PrivateKeyFile(export.ToStream(), passphrase);
+                _ = new PrivateKeyFile(export.ToStream(), passphrase);
             });
         }
 
