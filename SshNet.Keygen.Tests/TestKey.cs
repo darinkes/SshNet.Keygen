@@ -27,12 +27,8 @@ namespace SshNet.Keygen.Tests
         public void TestDefaultKey()
         {
             var key = SshKey.Generate();
-            Assert.IsInstanceOf<RsaKey>(key);
-            Assert.AreEqual(2048, key.KeyLength);
-            Assert.DoesNotThrow(() =>
-            {
-                _ = new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
-            });
+            Assert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm)key.HostKey).Key);
+            Assert.AreEqual(2048, ((KeyHostAlgorithm)key.HostKey).Key.KeyLength);
         }
 
         private static void KeyGenTest<TKey>(int keyLength = 0) where TKey : Key, new()
@@ -57,10 +53,9 @@ namespace SshNet.Keygen.Tests
                     PrivateKeyFile keyFile;
                     if (string.IsNullOrEmpty(path))
                     {
-                        var key = SshKey.Generate<TKey>(keyLength);
+                        keyFile = SshKey.Generate<TKey>(keyLength);
                         if (keyLength != 0)
-                            Assert.AreEqual(keyLength, (key.KeyLength));
-                        keyFile = new PrivateKeyFile(key.ToOpenSshFormat(sshKeyEncryption, comment).ToStream(), password);
+                            Assert.AreEqual(keyLength, ((KeyHostAlgorithm)keyFile.HostKey).Key.KeyLength);
                     }
                     else
                     {

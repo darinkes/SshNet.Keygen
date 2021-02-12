@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using Chaos.NaCl;
+using Renci.SshNet;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
 using SshNet.Keygen.SshKeyEncryption;
@@ -12,11 +13,6 @@ namespace SshNet.Keygen
     {
         internal static readonly HashAlgorithmName DefaultHashAlgorithmName = HashAlgorithmName.SHA256;
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
-
-        public static Key Generate(int keyLength = 2048)
-        {
-            return Generate<RsaKey>(keyLength);
-        }
 
         public static void Generate(string path, int keyLength = 2048, string comment = "")
         {
@@ -40,8 +36,14 @@ namespace SshNet.Keygen
             File.WriteAllText($"{path}.pub", key.ToOpenSshPublicFormat(comment));
         }
 
-        public static Key Generate<TKey>(int keyLength = 0) where TKey : Key, new()
+        public static PrivateKeyFile Generate(int keyLength = 2048)
         {
+            return Generate<RsaKey>(keyLength);
+        }
+
+        public static PrivateKeyFile Generate<TKey>(int keyLength = 0) where TKey : Key, new()
+        {
+            Key key;
             switch (Activator.CreateInstance(typeof(TKey)))
             {
                 case ED25519Key:
@@ -52,12 +54,13 @@ namespace SshNet.Keygen
                     rngCsp.GetBytes(seed);
                     Ed25519.KeyPairFromSeed(out var edPubKey, out var edKey, seed);
 
-                    return new ED25519Key(edPubKey, edKey);
+                    key = new ED25519Key(edPubKey, edKey);
+                    break;
                 case RsaKey:
                     var rsa = CreateRSA(keyLength);
                     var rsaParameters = rsa.ExportParameters(true);
 
-                    return new RsaKey(
+                    key = new RsaKey(
                         rsaParameters.Modulus.ToBigInteger2(),
                         rsaParameters.Exponent.ToBigInteger2(),
                         rsaParameters.D.ToBigInteger2(),
@@ -65,6 +68,7 @@ namespace SshNet.Keygen
                         rsaParameters.Q.ToBigInteger2(),
                         rsaParameters.InverseQ.ToBigInteger2()
                     );
+                    break;
                 case EcdsaKey:
                     var curve = keyLength switch
                     {
@@ -77,10 +81,19 @@ namespace SshNet.Keygen
                     var ecdsa = ECDsa.Create(curve);
                     var ecdsaParameters = ecdsa.ExportParameters(true);
 
-                    return new EcdsaKey(ecdsa.EcCurveNameSshCompat(), ecdsaParameters.UncompressedCoords(), ecdsaParameters.D);
+                    key = new EcdsaKey(
+                        ecdsa.EcCurveNameSshCompat(),
+                        ecdsaParameters.UncompressedCoords(),
+                        ecdsaParameters.D
+                    );
+                    break;
                 default:
                     throw new CryptographicException("Unsupported KeyType");
             }
+
+            // ToDo: could we set the Key in PrivateKeyFile directly?
+            //       Currently there is no ctor with HostKey
+            return new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
         }
 
         private static RSA CreateRSA(int keySize)
