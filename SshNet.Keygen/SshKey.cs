@@ -31,13 +31,10 @@ namespace SshNet.Keygen
 
         public static void Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 0, string comment = "") where TKey : Key, new()
         {
-            var file = File.Open(path, mode);
+            using var file = File.Open(path, mode);
+            using var writer = new StreamWriter(file);
             var key = Generate<TKey>(keyLength);
-            var writer = new StreamWriter(file);
             writer.Write(key.ToOpenSshFormat(encryption, comment));
-            writer.Flush();
-            writer.Close();
-            file.Close();
         }
 
         public static PrivateKeyFile Generate(int keyLength = 2048)
