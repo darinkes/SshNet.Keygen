@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>9</LangVersion>
         <PackageId>SshNet.Keygen</PackageId>
-        <Version>0.1.2-beta</Version>
+        <Version>0.1.3-beta</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <PackageTags>ssh;scp;sftp</PackageTags>
         <Description>SSH.NET Extension to generate and export Authentication Keys in OPENSSH-Format</Description>
