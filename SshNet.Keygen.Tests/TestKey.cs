@@ -59,8 +59,10 @@ namespace SshNet.Keygen.Tests
                     }
                     else
                     {
-                        SshKey.Generate<TKey>(path, FileMode.Create, sshKeyEncryption, keyLength, comment);
+                        _ = SshKey.Generate<TKey>(path, FileMode.Create, sshKeyEncryption, keyLength, comment);
                         keyFile = new PrivateKeyFile(path, password);
+                        Assert.IsTrue(File.Exists(path));
+                        Assert.AreEqual(keyFile.ToOpenSshPublicFormat(comment), File.ReadAllText($"{path}.pub"));
                     }
 
                     Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKey).Key);

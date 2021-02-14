@@ -14,27 +14,34 @@ namespace SshNet.Keygen
         internal static readonly HashAlgorithmName DefaultHashAlgorithmName = HashAlgorithmName.SHA256;
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
 
-        public static void Generate(string path, FileMode mode, int keyLength = 2048, string comment = "")
+        public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength = 2048, string comment = "")
         {
-            Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, keyLength, comment);
+            return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, keyLength, comment);
         }
 
-        public static void Generate(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 2048, string comment = "")
+        public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 2048, string comment = "")
         {
-            Generate<RsaKey>(path, mode, encryption, keyLength, comment);
+            return Generate<RsaKey>(path, mode, encryption, keyLength, comment);
         }
 
-        public static void Generate<TKey>(string path, FileMode mode, int keyLength = 0, string comment = "") where TKey : Key, new()
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, int keyLength = 0, string comment = "") where TKey : Key, new()
         {
-            Generate<TKey>(path, mode, DefaultSshKeyEncryption, keyLength, comment);
+            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, keyLength, comment);
         }
 
-        public static void Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 0, string comment = "") where TKey : Key, new()
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 0, string comment = "") where TKey : Key, new()
         {
-            using var file = File.Open(path, mode);
-            using var writer = new StreamWriter(file);
             var key = Generate<TKey>(keyLength);
+
+            using var file = File.Open(path, mode, FileAccess.Write);
+            using var writer = new StreamWriter(file);
             writer.Write(key.ToOpenSshFormat(encryption, comment));
+
+            using var pubFile = File.Open($"{path}.pub", mode);
+            using var pubWriter = new StreamWriter(pubFile);
+            pubWriter.Write(key.ToOpenSshPublicFormat(comment));
+
+            return key;
         }
 
         public static PrivateKeyFile Generate(int keyLength = 2048)
