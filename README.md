@@ -41,17 +41,9 @@ Console.WriteLine("Fingerprint: {0}", fingerprint);
 Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
 Console.ReadLine();
 
-var connectionInfo = new ConnectionInfo(
-    "ssh.foo.com",
-    "root",
-    new PrivateKeyAuthenticationMethod("root", key)
-);
-
-using (var client = new SshClient(connectionInfo))
-{
-    client.Connect();
-    Console.WriteLine(client.RunCommand("hostname").Result);
-}
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
 ### Generate an password protected RSA-2048 Key in File, Show the Public Key and Connect with the Private Key
@@ -65,17 +57,9 @@ Console.WriteLine("Fingerprint: {0}", fingerprint);
 Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
 Console.ReadLine();
 
-var connectionInfo = new ConnectionInfo(
-    "ssh.foo.com",
-    "root",
-    new PrivateKeyAuthenticationMethod("root", key)
-);
-
-using (var client = new SshClient(connectionInfo))
-{
-    client.Connect();
-    Console.WriteLine(client.RunCommand("hostname").Result);
-}
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
 ### Generate an RSA-2048 Key, Show the Public Key and Connect with the Private Key
@@ -88,17 +72,9 @@ Console.WriteLine("Fingerprint: {0}", fingerprint);
 Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
 Console.ReadLine();
 
-var connectionInfo = new ConnectionInfo(
-    "ssh.foo.com",
-    "root",
-    new PrivateKeyAuthenticationMethod("root", key)
-);
-
-using (var client = new SshClient(connectionInfo))
-{
-    client.Connect();
-    Console.WriteLine(client.RunCommand("hostname").Result);
-}
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
 ### Generate an RSA-8192 Key, Show the Public Key and Connect with the Private Key
@@ -111,17 +87,9 @@ Console.WriteLine("Fingerprint: {0}", fingerprint);
 Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
 Console.ReadLine();
 
-var connectionInfo = new ConnectionInfo(
-    "ssh.foo.com",
-    "root",
-    new PrivateKeyAuthenticationMethod("root", key)
-);
-
-using (var client = new SshClient(connectionInfo))
-{
-    client.Connect();
-    Console.WriteLine(client.RunCommand("hostname").Result);
-}
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
 ### Generate an ECDSA256 Key, Show the Public Key and Connect with the Private Key
@@ -134,17 +102,9 @@ Console.WriteLine("Fingerprint: {0}", fingerprint);
 Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
 Console.ReadLine();
 
-var connectionInfo = new ConnectionInfo(
-    "ssh.foo.com",
-    "root",
-    new PrivateKeyAuthenticationMethod("root", key)
-);
-
-using (var client = new SshClient(connectionInfo))
-{
-    client.Connect();
-    Console.WriteLine(client.RunCommand("hostname").Result);
-}
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
 ### Generate an ED25519 Key, Show the Public Key and Connect with the Private Key
@@ -157,17 +117,9 @@ Console.WriteLine("Fingerprint: {0}", fingerprint);
 Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
 Console.ReadLine();
 
-var connectionInfo = new ConnectionInfo(
-    "ssh.foo.com",
-    "root",
-    new PrivateKeyAuthenticationMethod("root", key)
-);
-
-using (var client = new SshClient(connectionInfo))
-{
-    client.Connect();
-    Console.WriteLine(client.RunCommand("hostname").Result);
-}
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
 ### Export an existing Key from SSH.NET

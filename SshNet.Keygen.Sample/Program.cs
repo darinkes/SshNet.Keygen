@@ -18,12 +18,9 @@ namespace SshNet.Keygen.Sample
             Console.WriteLine("Add this to your .ssh/authorized_keys of the SSH Server: {0}", publicKey);
             Console.ReadLine();
 
-            var connectionInfo = new ConnectionInfo("ssh.foo.com", "root", new PrivateKeyAuthenticationMethod("root", key));
-            using (var client = new SshClient(connectionInfo))
-            {
-                client.Connect();
-                Console.WriteLine(client.RunCommand("hostname").Result);
-            }
+            using var client = new SshClient("ssh.foo.com", "root", key);
+            client.Connect();
+            Console.WriteLine(client.RunCommand("hostname").Result);
         }
     }
 }
