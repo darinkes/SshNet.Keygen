@@ -4,6 +4,7 @@ SshNet.Keygen
 
 ![CodeQL](https://github.com/darinkes/SshNet.Keygen/workflows/CodeQL/badge.svg)
 ![.NET](https://github.com/darinkes/SshNet.Keygen/workflows/.NET/badge.svg)
+![NuGet](https://github.com/darinkes/SshNet.Keygen/workflows/NuGet/badge.svg)
 [![NuGet](https://img.shields.io/nuget/v/SshNet.Keygen.svg?style=flat)](https://www.nuget.org/packages/SshNet.Keygen)
 ![Nuget](https://img.shields.io/nuget/dt/SshNet.Keygen)
 
