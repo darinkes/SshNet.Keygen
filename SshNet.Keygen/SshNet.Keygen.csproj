@@ -2,6 +2,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>9</LangVersion>
+        <!-- ToDo: enable once openssh format branch is merged -->
+        <Nullable>disable</Nullable>
         <PackageId>SshNet.Keygen</PackageId>
         <Version>0.1.5-beta</Version>
         <PackageVersion>$(Version)</PackageVersion>
