@@ -153,8 +153,8 @@ namespace SshNet.Keygen.Tests
             Assert.AreEqual(fpSha384Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA384).Trim());
             Assert.AreEqual(fpSha512Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA512).Trim());
 
-            // XXX: We cannot test the result of the PrivateKey Export, since Random CheckInts are random...
-            //      So just check the key can be reimport again.
+            // We cannot test the result of the PrivateKey Export, since Random CheckInts are random...
+            // So just check the key can be reimport again.
             // Assert.AreEqual(keydata.Trim(), keyFile.ToOpenSshFormat().Trim());
             var export = string.IsNullOrEmpty(passphrase)
                 ? keyFile.ToOpenSshFormat()

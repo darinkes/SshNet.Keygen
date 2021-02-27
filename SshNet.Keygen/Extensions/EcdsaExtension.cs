@@ -5,7 +5,7 @@ namespace SshNet.Keygen.Extensions
 {
     internal static class EcdsaExtension
     {
-        // XXX: EcParameters.Curve.Oid.FriendlyName returns with a P instead of p
+        // EcParameters.Curve.Oid.FriendlyName returns with a P instead of p
         public static string EcCurveNameSshCompat(this ECDsa ecdsa)
         {
             return ecdsa.KeySize switch
