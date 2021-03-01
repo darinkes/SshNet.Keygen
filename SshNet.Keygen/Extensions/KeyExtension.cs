@@ -2,7 +2,6 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Renci.SshNet;
 using Renci.SshNet.Security;
 using SshNet.Keygen.SshKeyEncryption;
 
@@ -74,13 +73,17 @@ namespace SshNet.Keygen.Extensions
 
         private static string KeyName(this Key key)
         {
-            switch (key)
+            switch (key.ToString())
             {
-                case ED25519Key:
+                case "ssh-ed25519":
                     return "ED25519";
-                case RsaKey:
+                case "ssh-rsa":
                     return "RSA";
-                case EcdsaKey:
+                case "ecdsa-sha2-nistp256":
+                    // Fallthrough
+                case "ecdsa-sha2-nistp384":
+                    // Fallthrough
+                case "ecdsa-sha2-nistp521":
                     return "ECDSA";
             }
 
@@ -90,16 +93,23 @@ namespace SshNet.Keygen.Extensions
         private static void PublicKeyData(this Key key, BinaryWriter writer)
         {
             writer.EncodeString(key.ToString());
-            switch (key)
+            switch (key.ToString())
             {
-                case ED25519Key ed25519:
+                case "ssh-ed25519":
+                    var ed25519 = (ED25519Key)key;
                     writer.EncodeBignum2(ed25519.PublicKey);
                     break;
-                case RsaKey rsa:
+                case "ssh-rsa":
+                    var rsa = (RsaKey)key;
                     writer.EncodeBignum2(rsa.Exponent.ToByteArray().Reverse());
                     writer.EncodeBignum2(rsa.Modulus.ToByteArray().Reverse());
                     break;
-                case EcdsaKey ecdsa:
+                case "ecdsa-sha2-nistp256":
+                    // Fallthrough
+                case "ecdsa-sha2-nistp384":
+                    // Fallthrough
+                case "ecdsa-sha2-nistp521":
+                    var ecdsa = (EcdsaKey)key;
                     writer.EncodeEcKey(ecdsa.Ecdsa, false);
                     break;
             }
@@ -130,13 +140,15 @@ namespace SshNet.Keygen.Extensions
             privWriter.EncodeInt(rnd); // check-int1
             privWriter.EncodeInt(rnd); // check-int2
             privWriter.EncodeString(key.ToString());
-            switch (key)
+            switch (key.ToString())
             {
-                case ED25519Key ed25519:
+                case "ssh-ed25519":
+                    var ed25519 = (ED25519Key)key;
                     privWriter.EncodeBignum2(ed25519.PublicKey);
                     privWriter.EncodeBignum2(ed25519.PrivateKey);
                     break;
-                case RsaKey rsa:
+                case "ssh-rsa":
+                    var rsa = (RsaKey)key;
                     privWriter.EncodeBignum2(rsa.Modulus.ToByteArray().Reverse());
                     privWriter.EncodeBignum2(rsa.Exponent.ToByteArray().Reverse());
                     privWriter.EncodeBignum2(rsa.D.ToByteArray().Reverse());
@@ -144,7 +156,12 @@ namespace SshNet.Keygen.Extensions
                     privWriter.EncodeBignum2(rsa.P.ToByteArray().Reverse());
                     privWriter.EncodeBignum2(rsa.Q.ToByteArray().Reverse());
                     break;
-                case EcdsaKey ecdsa:
+                case "ecdsa-sha2-nistp256":
+                    // Fallthrough
+                case "ecdsa-sha2-nistp384":
+                    // Fallthrough
+                case "ecdsa-sha2-nistp521":
+                    var ecdsa = (EcdsaKey)key;
                     privWriter.EncodeEcKey(ecdsa.Ecdsa, true);
                     break;
             }
