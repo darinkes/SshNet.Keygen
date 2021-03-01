@@ -99,9 +99,7 @@ namespace SshNet.Keygen
                     throw new CryptographicException("Unsupported KeyType");
             }
 
-            // ToDo: could we set the Key in PrivateKeyFile directly?
-            //       Currently there is no ctor with HostKey
-            return new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
+            return new PrivateKeyFile(key);
         }
 
         private static RSA CreateRSA(int keySize)
