@@ -27,5 +27,14 @@ namespace SshNet.Keygen.Extensions
             Array.Reverse(array);
             return array;
         }
+
+        public static byte[] Pad(this byte[] data, int length)
+        {
+            if (length <= data.Length)
+                return data;
+            var newData = new byte[length];
+            Buffer.BlockCopy(data, 0, newData, newData.Length - data.Length, data.Length);
+            return newData;
+        }
     }
 }

@@ -55,17 +55,20 @@ namespace SshNet.Keygen
             switch (Activator.CreateInstance(typeof(TKey)))
             {
                 case ED25519Key:
+                {
                     if (keyLength != 0)
                         throw new CryptographicException("KeyLength is not valid for ED25519Key");
-                    var rngCsp = new RNGCryptoServiceProvider();
+
+                    using var rngCsp = new RNGCryptoServiceProvider();
                     var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
                     rngCsp.GetBytes(seed);
                     Ed25519.KeyPairFromSeed(out var edPubKey, out var edKey, seed);
-
                     key = new ED25519Key(edPubKey, edKey);
                     break;
+                }
                 case RsaKey:
-                    var rsa = CreateRSA(keyLength);
+                {
+                    using var rsa = CreateRSA(keyLength);
                     var rsaParameters = rsa.ExportParameters(true);
 
                     key = new RsaKey(
@@ -77,7 +80,9 @@ namespace SshNet.Keygen
                         rsaParameters.InverseQ.ToBigInteger2()
                     );
                     break;
+                }
                 case EcdsaKey:
+                {
                     var curve = keyLength switch
                     {
                         256 => ECCurve.CreateFromFriendlyName("nistp256"),
@@ -86,15 +91,19 @@ namespace SshNet.Keygen
                         _ => throw new CryptographicException("Unsupported KeyLength")
                     };
 
-                    var ecdsa = ECDsa.Create(curve);
+                    using var ecdsa = ECDsa.Create();
+                    if (ecdsa is null)
+                        throw new CryptographicException("Unable to generate ECDSA");
+                    ecdsa.GenerateKey(curve);
                     var ecdsaParameters = ecdsa.ExportParameters(true);
 
                     key = new EcdsaKey(
                         ecdsa.EcCurveNameSshCompat(),
-                        ecdsaParameters.UncompressedCoords(),
+                        ecdsaParameters.UncompressedCoords(ecdsa.EcCoordsLength()),
                         ecdsaParameters.D
                     );
                     break;
+                }
                 default:
                     throw new CryptographicException("Unsupported KeyType");
             }
