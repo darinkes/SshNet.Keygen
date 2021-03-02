@@ -15,7 +15,7 @@ namespace SshNet.Keygen.Extensions
             return data.ToBigInteger();
         }
 
-        private static BigInteger ToBigInteger(this byte[] data)
+        public static BigInteger ToBigInteger(this byte[] data)
         {
             var reversed = new byte[data.Length];
             Buffer.BlockCopy(data, 0, reversed, 0, data.Length);

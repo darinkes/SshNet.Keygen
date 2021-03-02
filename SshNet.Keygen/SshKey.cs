@@ -63,7 +63,7 @@ namespace SshNet.Keygen
                     var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
                     rngCsp.GetBytes(seed);
                     Ed25519.KeyPairFromSeed(out var edPubKey, out var edKey, seed);
-                    key = new ED25519Key(edPubKey, edKey);
+                    key = new ED25519Key(edPubKey, edKey.Reverse());
                     break;
                 }
                 case RsaKey:
@@ -72,12 +72,12 @@ namespace SshNet.Keygen
                     var rsaParameters = rsa.ExportParameters(true);
 
                     key = new RsaKey(
-                        rsaParameters.Modulus.ToBigInteger2(),
-                        rsaParameters.Exponent.ToBigInteger2(),
-                        rsaParameters.D.ToBigInteger2(),
-                        rsaParameters.P.ToBigInteger2(),
-                        rsaParameters.Q.ToBigInteger2(),
-                        rsaParameters.InverseQ.ToBigInteger2()
+                        rsaParameters.Modulus.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.Exponent.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.D.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.P.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.Q.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.InverseQ.ToBigInteger2().ToByteArray().Reverse().ToBigInteger()
                     );
                     break;
                 }
