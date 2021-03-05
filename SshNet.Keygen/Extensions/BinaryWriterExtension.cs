@@ -7,6 +7,26 @@ namespace SshNet.Keygen.Extensions
 {
     internal static class BinaryWriterExtension
     {
+
+#if NET40
+        public static void EncodeEcKey(this BinaryWriter writer, ECDsaCng ecdsa)
+        {
+            byte[] qx;
+            byte[] qy;
+
+            var publicBytes = ecdsa.Key.Export(CngKeyBlobFormat.EccPublicBlob);
+            using (var br = new BinaryReader(new MemoryStream(publicBytes)))
+            {
+                    _ = br.ReadInt32();
+                    var coordSize = br.ReadInt32();
+                    qx = br.ReadBytes(coordSize);
+                    qy = br.ReadBytes(coordSize);
+            }
+
+            EncodeString(writer, ecdsa.EcCurveNameSshCompat());
+            EncodeString(writer, EcdsaExtension.UncompressedCoords(qx, qy, ecdsa.EcCoordsLength()));
+        }
+#else
         public static void EncodeEcKey(this BinaryWriter writer, ECDsa ecdsa, bool includePrivate)
         {
             var ecdsaParameters = ecdsa.ExportParameters(includePrivate);
@@ -15,6 +35,7 @@ namespace SshNet.Keygen.Extensions
             if (includePrivate)
                 EncodeBignum2(writer, ecdsaParameters.D.ToBigInteger2().ToByteArray().Reverse());
         }
+#endif
 
         public static void EncodeNullTerminatedString(this BinaryWriter writer, string str)
         {

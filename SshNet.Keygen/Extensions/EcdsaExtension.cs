@@ -6,7 +6,11 @@ namespace SshNet.Keygen.Extensions
     internal static class EcdsaExtension
     {
         // EcParameters.Curve.Oid.FriendlyName returns with a P instead of p
+#if NET40
+        public static string EcCurveNameSshCompat(this ECDsaCng ecdsa)
+#else
         public static string EcCurveNameSshCompat(this ECDsa ecdsa)
+#endif
         {
             return ecdsa.KeySize switch
             {
@@ -17,7 +21,11 @@ namespace SshNet.Keygen.Extensions
             };
         }
 
+#if NET40
+        public static int EcCoordsLength(this ECDsaCng ecdsa)
+#else
         public static int EcCoordsLength(this ECDsa ecdsa)
+#endif
         {
             return ecdsa.KeySize switch
             {
@@ -28,15 +36,19 @@ namespace SshNet.Keygen.Extensions
             };
         }
 
+#if NETSTANDARD
         public static byte[] UncompressedCoords(this ECParameters ecdsaParameters, int coordLength)
         {
-            var q = new byte[1 + 2 * coordLength];
-            var qx = ecdsaParameters.Q.X.Pad(coordLength);
-            var qy = ecdsaParameters.Q.Y.Pad(coordLength);
+            return UncompressedCoords(ecdsaParameters.Q.X, ecdsaParameters.Q.Y, coordLength);
+        }
+#endif
 
+        public static byte[] UncompressedCoords(byte[] qx, byte[] qy, int coordLength)
+        {
+            var q = new byte[1 + 2 * coordLength];
             Buffer.SetByte(q, 0, 4); // Uncompressed
-            Buffer.BlockCopy(qx, 0, q, 1, qx.Length);
-            Buffer.BlockCopy(qy, 0, q, qx.Length + 1, qy.Length);
+            Buffer.BlockCopy(qx.Pad(coordLength), 0, q, 1, coordLength);
+            Buffer.BlockCopy(qy.Pad(coordLength), 0, q, coordLength + 1, coordLength);
             return q;
         }
     }

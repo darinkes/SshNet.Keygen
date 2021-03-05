@@ -48,7 +48,7 @@ namespace SshNet.Keygen.Extensions
             return key.Fingerprint(SshKey.DefaultHashAlgorithmName, comment);
         }
 
-        public static string Fingerprint(this Key key, HashAlgorithmName hashAlgorithm, string comment = "")
+        public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm, string comment = "")
         {
             // SHA256 of PublicKey-Data
             using var pubStream = new MemoryStream();
@@ -56,19 +56,19 @@ namespace SshNet.Keygen.Extensions
             key.PublicKeyData(pubWriter);
             byte[] pubKeyHash;
 
-            using (var hash = HashAlgorithm.Create(hashAlgorithm.Name))
+            using (var hash = SshKeyHashAlgorithm.Create(hashAlgorithm))
             {
-                if (hash == null)
-                    throw new CryptographicException($"Unsupported HashAlgorithmName: {hashAlgorithm.Name}");
+                if (hash is null)
+                    throw new CryptographicException($"Unsupported HashAlgorithm: {hashAlgorithm}");
                 pubKeyHash = hash.ComputeHash(pubStream.GetBuffer(), 0, (int)pubStream.Length);
             }
 
             // base64 without padding or Hex
-            var base64 = hashAlgorithm == HashAlgorithmName.MD5 ?
-                BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':') :
-                Convert.ToBase64String(pubKeyHash, 0, (int)pubKeyHash.Length).TrimEnd('=');
+            var base64 = hashAlgorithm == SshKeyHashAlgorithmName.MD5
+                ? BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':')
+                : Convert.ToBase64String(pubKeyHash, 0, (int) pubKeyHash.Length).TrimEnd('=');
 
-            return $"{key.KeyLength} {hashAlgorithm.Name}:{base64} {comment} ({key.KeyName()})";
+            return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {comment} ({key.KeyName()})";
         }
 
         private static string KeyName(this Key key)
@@ -110,7 +110,11 @@ namespace SshNet.Keygen.Extensions
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
+#if NET40
+                    writer.EncodeEcKey((ECDsaCng)ecdsa.Ecdsa);
+#else
                     writer.EncodeEcKey(ecdsa.Ecdsa, false);
+#endif
                     break;
             }
         }
@@ -161,9 +165,14 @@ namespace SshNet.Keygen.Extensions
                 case "ecdsa-sha2-nistp384":
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
+#if NET40
+                    // ECDsaCng keys created via Import() have no ExportPolicy
+                    throw new NotSupportedException();
+#else
                     var ecdsa = (EcdsaKey)key;
                     privWriter.EncodeEcKey(ecdsa.Ecdsa, true);
                     break;
+#endif
             }
             // comment
             privWriter.EncodeString(comment);

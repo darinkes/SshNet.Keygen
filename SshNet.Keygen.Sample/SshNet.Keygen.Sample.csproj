@@ -1,8 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net40;net5.0</TargetFrameworks>
+        <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net5.0</TargetFramework>
+        <LangVersion>9</LangVersion>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
