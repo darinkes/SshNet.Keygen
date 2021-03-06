@@ -14,6 +14,12 @@ WIP, with open ToDos and needs [MR#614](https://github.com/sshnet/SSH.NET/pull/6
 
 Currently builds it's own fork of [SSH.NET](https://github.com/sshnet/SSH.NET) to be able to automatically test them.
 
+## .NET Frameworks
+
+* .NET 4.0
+  * No ECDSA Key Generation
+* netstandard 2.0
+
 ## Keys
 * ssh-ed25519
 * ecdsa-sha2-nistp256
