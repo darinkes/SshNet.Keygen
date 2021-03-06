@@ -162,7 +162,6 @@ namespace SshNet.Keygen.Extensions
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
-                    // privWriter.EncodeEcKey(ecdsa.Ecdsa, true);
                     var publicKey = ecdsa.Public;
                     privWriter.EncodeString(publicKey[0].ToByteArray().Reverse());
                     privWriter.EncodeString(publicKey[1].ToByteArray().Reverse());
