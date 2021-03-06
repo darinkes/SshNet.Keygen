@@ -2,12 +2,14 @@ SshNet.Keygen
 =============
 [SSH.NET](https://github.com/sshnet/SSH.NET) Extension to generate and export Authentication Keys in OPENSSH-Format
 
+[![License](https://img.shields.io/github/license/darinkes/SshNet.KeyGen)](https://github.com/darinkes/SshNet.KeyGen/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/SshNet.Keygen.svg?style=flat)](https://www.nuget.org/packages/SshNet.Keygen)
+![Nuget](https://img.shields.io/nuget/dt/SshNet.Keygen)
+
 ![CodeQL](https://github.com/darinkes/SshNet.Keygen/workflows/CodeQL/badge.svg)
 ![.NET-Ubuntu](https://github.com/darinkes/SshNet.Keygen/workflows/.NET-Ubuntu/badge.svg)
 ![.NET-Windows](https://github.com/darinkes/SshNet.Keygen/workflows/.NET-Windows/badge.svg)
 ![NuGet](https://github.com/darinkes/SshNet.Keygen/workflows/NuGet/badge.svg)
-[![NuGet](https://img.shields.io/nuget/v/SshNet.Keygen.svg?style=flat)](https://www.nuget.org/packages/SshNet.Keygen)
-![Nuget](https://img.shields.io/nuget/dt/SshNet.Keygen)
 
 ## Status
 WIP, with open ToDos and needs [MR#614](https://github.com/sshnet/SSH.NET/pull/614) merged upstream.
