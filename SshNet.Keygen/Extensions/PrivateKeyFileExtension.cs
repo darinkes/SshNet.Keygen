@@ -12,7 +12,7 @@ namespace SshNet.Keygen.Extensions
             return keyFile.Fingerprint(SshKey.DefaultHashAlgorithmName, comment);
         }
 
-        public static string Fingerprint(this PrivateKeyFile keyFile, HashAlgorithmName hashAlgorithm,  string comment = "")
+        public static string Fingerprint(this PrivateKeyFile keyFile, SshKeyHashAlgorithmName hashAlgorithm,  string comment = "")
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.Fingerprint(hashAlgorithm, comment);
         }

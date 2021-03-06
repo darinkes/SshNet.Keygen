@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NETSTANDARD
+using System;
 using System.Security.Cryptography;
 
 namespace SshNet.Keygen.Extensions
@@ -41,3 +42,4 @@ namespace SshNet.Keygen.Extensions
         }
     }
 }
+#endif

@@ -7,15 +7,6 @@ namespace SshNet.Keygen.Extensions
 {
     internal static class BinaryWriterExtension
     {
-        public static void EncodeEcKey(this BinaryWriter writer, ECDsa ecdsa, bool includePrivate)
-        {
-            var ecdsaParameters = ecdsa.ExportParameters(includePrivate);
-            EncodeString(writer, ecdsa.EcCurveNameSshCompat());
-            EncodeString(writer, ecdsaParameters.UncompressedCoords(ecdsa.EcCoordsLength()));
-            if (includePrivate)
-                EncodeBignum2(writer, ecdsaParameters.D.ToBigInteger2().ToByteArray().Reverse());
-        }
-
         public static void EncodeNullTerminatedString(this BinaryWriter writer, string str)
         {
             writer.Write(Encoding.ASCII.GetBytes(str));

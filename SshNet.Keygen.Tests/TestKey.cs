@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -17,10 +18,15 @@ namespace SshNet.Keygen.Tests
         public void TestExceptions()
         {
             Assert.Throws<CryptographicException>(() => SshKey.Generate<RsaKey>());
-            Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>());
             Assert.Throws<CryptographicException>(() => SshKey.Generate<RsaKey>(1));
             Assert.Throws<CryptographicException>(() => SshKey.Generate<ED25519Key>(1));
+#if NET40
+            Assert.Throws<NotSupportedException>(() => SshKey.Generate<EcdsaKey>());
+            Assert.Throws<NotSupportedException>(() => SshKey.Generate<EcdsaKey>(1));
+#else
+            Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>());
             Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>(1));
+#endif
         }
 
         [Test]
@@ -96,28 +102,43 @@ namespace SshNet.Keygen.Tests
             KeyGenTest<RsaKey>(4096);
         }
 
+        // Insanely slow for .NET 4.0
+#if !NET40
         [Test]
         public void GenerateRSA8192()
         {
             KeyGenTest<RsaKey>(8192);
         }
+#endif
 
         [Test]
         public void GenerateEcdsa256()
         {
+#if NET40
+            Assert.Throws<NotSupportedException>(() => KeyGenTest<EcdsaKey>(256));
+#else
             KeyGenTest<EcdsaKey>(256);
+#endif
         }
 
         [Test]
         public void GenerateEcdsa384()
         {
+#if NET40
+            Assert.Throws<NotSupportedException>(() => KeyGenTest<EcdsaKey>(384));
+#else
             KeyGenTest<EcdsaKey>(384);
+#endif
         }
 
         [Test]
         public void GenerateEcdsa521()
         {
+#if NET40
+            Assert.Throws<NotSupportedException>(() => KeyGenTest<EcdsaKey>(521));
+#else
             KeyGenTest<EcdsaKey>(521);
+#endif
         }
 
         private string GetKey(string keyname)
@@ -147,11 +168,11 @@ namespace SshNet.Keygen.Tests
             Assert.AreEqual(keyLength, key.KeyLength);
             Assert.AreEqual(pubkeydata.Trim(), keyFile.ToOpenSshPublicFormat().Trim());
             Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint().Trim());
-            Assert.AreEqual(fpMd5Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.MD5).Trim());
-            Assert.AreEqual(fpSha1Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA1).Trim());
-            Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA256).Trim());
-            Assert.AreEqual(fpSha384Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA384).Trim());
-            Assert.AreEqual(fpSha512Data.Trim(), keyFile.Fingerprint(HashAlgorithmName.SHA512).Trim());
+            Assert.AreEqual(fpMd5Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.MD5).Trim());
+            Assert.AreEqual(fpSha1Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA1).Trim());
+            Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA256).Trim());
+            Assert.AreEqual(fpSha384Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA384).Trim());
+            Assert.AreEqual(fpSha512Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA512).Trim());
 
             // We cannot test the result of the PrivateKey Export, since Random CheckInts are random...
             // So just check the key can be reimport again.

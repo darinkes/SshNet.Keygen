@@ -11,7 +11,7 @@ namespace SshNet.Keygen
 {
     public static class SshKey
     {
-        internal static readonly HashAlgorithmName DefaultHashAlgorithmName = HashAlgorithmName.SHA256;
+        internal static readonly SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
 
         public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength = 2048, string comment = "")
@@ -81,6 +81,7 @@ namespace SshNet.Keygen
                     );
                     break;
                 }
+#if NETSTANDARD
                 case EcdsaKey:
                 {
                     var curve = keyLength switch
@@ -104,8 +105,9 @@ namespace SshNet.Keygen
                     );
                     break;
                 }
+#endif
                 default:
-                    throw new CryptographicException("Unsupported KeyType");
+                    throw new NotSupportedException("Unsupported KeyType");
             }
 
             return new PrivateKeyFile(key);
@@ -113,6 +115,15 @@ namespace SshNet.Keygen
 
         private static RSA CreateRSA(int keySize)
         {
+#if NET40
+            var rsa = new RSACryptoServiceProvider(keySize);
+            var keySizes = rsa.LegalKeySizes[0];
+            if (keySize < keySizes.MinSize || keySize > keySizes.MaxSize)
+            {
+                throw new CryptographicException("Illegal Keysize");
+            }
+            return rsa;
+#else
             var rsa = RSA.Create();
 
             if (rsa is RSACryptoServiceProvider)
@@ -123,6 +134,7 @@ namespace SshNet.Keygen
 
             rsa.KeySize = keySize;
             return rsa;
+#endif
         }
     }
 }
