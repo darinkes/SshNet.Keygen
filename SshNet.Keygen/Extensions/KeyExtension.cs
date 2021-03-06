@@ -49,7 +49,6 @@ namespace SshNet.Keygen.Extensions
 
         public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm, string comment = "")
         {
-            // SHA256 of PublicKey-Data
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
             key.PublicKeyData(pubWriter);
@@ -60,10 +59,9 @@ namespace SshNet.Keygen.Extensions
                 pubKeyHash = hash.ComputeHash(pubStream.GetBuffer(), 0, (int)pubStream.Length);
             }
 
-            // base64 without padding or Hex
-            var base64 = hashAlgorithm == SshKeyHashAlgorithmName.MD5 ?
-                BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':') :
-                Convert.ToBase64String(pubKeyHash, 0, pubKeyHash.Length).TrimEnd('=');
+            var base64 = hashAlgorithm == SshKeyHashAlgorithmName.MD5
+                ? BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':')
+                : Convert.ToBase64String(pubKeyHash, 0, pubKeyHash.Length).TrimEnd('=');
 
             return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {comment} ({key.KeyName()})";
         }
@@ -107,7 +105,6 @@ namespace SshNet.Keygen.Extensions
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
-                    // writer.EncodeEcKey(ecdsa.Ecdsa, false);
                     var publicKey = ecdsa.Public;
                     writer.EncodeString(publicKey[0].ToByteArray().Reverse());
                     writer.EncodeString(publicKey[1].ToByteArray().Reverse());
