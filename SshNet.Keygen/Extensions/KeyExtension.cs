@@ -58,8 +58,6 @@ namespace SshNet.Keygen.Extensions
 
             using (var hash = SshKeyHashAlgorithm.Create(hashAlgorithm))
             {
-                if (hash == null)
-                    throw new CryptographicException($"Unsupported HashAlgorithmName: {hashAlgorithm}");
                 pubKeyHash = hash.ComputeHash(pubStream.GetBuffer(), 0, (int)pubStream.Length);
             }
 
