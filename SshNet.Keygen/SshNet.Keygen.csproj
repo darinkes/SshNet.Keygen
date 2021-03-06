@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net40;netstandard2.0;netstandard2.1</TargetFrameworks>
-        <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net40;netstandard2.0</TargetFrameworks>
+        <TargetFramework Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFramework>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>SshNet.Keygen</PackageId>
@@ -31,8 +31,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SSH.NET\src\Renci.SshNet\Renci.SshNet.csproj">
-            <SetTargetFrameworks>TargetFramework=$(TargetFrameworks)</SetTargetFrameworks>
-        </ProjectReference>
+        <ProjectReference Include="..\SSH.NET\src\Renci.SshNet\Renci.SshNet.csproj"/>
     </ItemGroup>
 </Project>
