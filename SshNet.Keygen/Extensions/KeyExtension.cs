@@ -165,7 +165,7 @@ namespace SshNet.Keygen.Extensions
                     var publicKey = ecdsa.Public;
                     privWriter.EncodeString(publicKey[0].ToByteArray().Reverse());
                     privWriter.EncodeString(publicKey[1].ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(ecdsa.Private.ToByteArray().Reverse());
+                    privWriter.EncodeBignum2(ecdsa.PrivateKey.ToBigInteger2().ToByteArray().Reverse());
                     break;
             }
             // comment
