@@ -28,6 +28,7 @@ namespace SshNet.Keygen.Extensions
             return array;
         }
 
+#if NETSTANDARD
         public static byte[] Pad(this byte[] data, int length)
         {
             if (length <= data.Length)
@@ -36,5 +37,6 @@ namespace SshNet.Keygen.Extensions
             Buffer.BlockCopy(data, 0, newData, newData.Length - data.Length, data.Length);
             return newData;
         }
+#endif
     }
 }

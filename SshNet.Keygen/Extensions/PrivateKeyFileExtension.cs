@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using Renci.SshNet;
+﻿using Renci.SshNet;
 using Renci.SshNet.Security;
 using SshNet.Keygen.SshKeyEncryption;
 

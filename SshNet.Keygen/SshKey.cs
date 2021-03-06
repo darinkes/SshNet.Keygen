@@ -11,7 +11,7 @@ namespace SshNet.Keygen
 {
     public static class SshKey
     {
-        internal static readonly SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
+        internal const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
 
         public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength = 2048, string comment = "")

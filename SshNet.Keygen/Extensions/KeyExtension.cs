@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
 using Renci.SshNet.Security;
 using SshNet.Keygen.SshKeyEncryption;
@@ -64,7 +63,7 @@ namespace SshNet.Keygen.Extensions
             // base64 without padding or Hex
             var base64 = hashAlgorithm == SshKeyHashAlgorithmName.MD5 ?
                 BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':') :
-                Convert.ToBase64String(pubKeyHash, 0, (int)pubKeyHash.Length).TrimEnd('=');
+                Convert.ToBase64String(pubKeyHash, 0, pubKeyHash.Length).TrimEnd('=');
 
             return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {comment} ({key.KeyName()})";
         }

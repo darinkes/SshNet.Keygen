@@ -12,7 +12,7 @@ namespace SshNet.Keygen.SshKeyEncryption
     public enum Aes256Mode
     {
         Cbc,
-        Ctr,
+        Ctr
     }
 
     public class SshKeyEncryptionAes256 : ISshKeyEncryption
