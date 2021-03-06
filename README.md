@@ -12,9 +12,11 @@ SshNet.Keygen
 ![NuGet](https://github.com/darinkes/SshNet.Keygen/workflows/NuGet/badge.svg)
 
 ## Status
-WIP, with open ToDos and needs [MR#614](https://github.com/sshnet/SSH.NET/pull/614) merged upstream.
+WIP
 
 Currently builds it's own fork of [SSH.NET](https://github.com/sshnet/SSH.NET) to be able to automatically test them.
+
+Needs this Branch: https://github.com/darinkes/SSH.NET-1/tree/agent_auth
 
 ## .NET Frameworks
 
