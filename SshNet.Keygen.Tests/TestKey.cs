@@ -20,13 +20,8 @@ namespace SshNet.Keygen.Tests
             Assert.Throws<CryptographicException>(() => SshKey.Generate<RsaKey>());
             Assert.Throws<CryptographicException>(() => SshKey.Generate<RsaKey>(1));
             Assert.Throws<CryptographicException>(() => SshKey.Generate<ED25519Key>(1));
-#if NET40
-            Assert.Throws<NotSupportedException>(() => SshKey.Generate<EcdsaKey>());
-            Assert.Throws<NotSupportedException>(() => SshKey.Generate<EcdsaKey>(1));
-#else
             Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>());
             Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>(1));
-#endif
         }
 
         [Test]
@@ -114,31 +109,19 @@ namespace SshNet.Keygen.Tests
         [Test]
         public void GenerateEcdsa256()
         {
-#if NET40
-            Assert.Throws<NotSupportedException>(() => KeyGenTest<EcdsaKey>(256));
-#else
             KeyGenTest<EcdsaKey>(256);
-#endif
         }
 
         [Test]
         public void GenerateEcdsa384()
         {
-#if NET40
-            Assert.Throws<NotSupportedException>(() => KeyGenTest<EcdsaKey>(384));
-#else
             KeyGenTest<EcdsaKey>(384);
-#endif
         }
 
         [Test]
         public void GenerateEcdsa521()
         {
-#if NET40
-            Assert.Throws<NotSupportedException>(() => KeyGenTest<EcdsaKey>(521));
-#else
             KeyGenTest<EcdsaKey>(521);
-#endif
         }
 
         private string GetKey(string keyname)

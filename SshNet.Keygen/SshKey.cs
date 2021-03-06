@@ -81,9 +81,9 @@ namespace SshNet.Keygen
                     );
                     break;
                 }
-#if NETSTANDARD
                 case EcdsaKey:
                 {
+#if NETSTANDARD
                     var curve = keyLength switch
                     {
                         256 => ECCurve.CreateFromFriendlyName("nistp256"),
@@ -103,9 +103,25 @@ namespace SshNet.Keygen
                         ecdsaParameters.UncompressedCoords(ecdsa.EcCoordsLength()),
                         ecdsaParameters.D
                     );
+#else
+                    using var ecdsa = new ECDsaCng(keyLength);
+                    var keyBlob = ecdsa.Key.Export(CngKeyBlobFormat.EccPrivateBlob);
+                    using var stream = new MemoryStream(keyBlob);
+                    using var reader = new BinaryReader(stream);
+                    var magic = (EcdsaExtension.KeyBlobMagicNumber)reader.ReadInt32();
+                    var coordLength = reader.ReadInt32();
+                    var qx = reader.ReadBytes(coordLength);
+                    var qy = reader.ReadBytes(coordLength);
+                    var d = reader.ReadBytes(coordLength);
+
+                    key = new EcdsaKey(
+                        EcdsaExtension.GetCurve(magic),
+                        EcdsaExtension.UncompressedCoords(qx, qy),
+                        d
+                    );
+#endif
                     break;
                 }
-#endif
                 default:
                     throw new NotSupportedException("Unsupported KeyType");
             }

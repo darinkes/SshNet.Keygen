@@ -21,7 +21,6 @@ Needs this Branch: https://github.com/darinkes/SSH.NET-1/tree/agent_auth
 ## .NET Frameworks
 
 * .NET 4.0
-  * No ECDSA Key Generation
 * netstandard 2.0
 
 ## Keys
