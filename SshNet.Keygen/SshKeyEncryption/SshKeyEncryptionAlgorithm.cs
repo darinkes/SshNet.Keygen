@@ -23,7 +23,7 @@ namespace SshNet.Keygen.SshKeyEncryption
                 SshKeyHashAlgorithmName.SHA256 => "SHA256",
                 SshKeyHashAlgorithmName.SHA384 => "SHA384",
                 SshKeyHashAlgorithmName.SHA512 => "SHA512",
-                _ => throw new Exception("Unknown Algorithm")
+                _ => throw new NotSupportedException($"Unknown Algorithm: {algorithmName}")
             };
         }
 
@@ -36,7 +36,7 @@ namespace SshNet.Keygen.SshKeyEncryption
                 SshKeyHashAlgorithmName.SHA256 => CreateSHA256(),
                 SshKeyHashAlgorithmName.SHA384 => CreateSHA384(),
                 SshKeyHashAlgorithmName.SHA512 => CreateSHA512(),
-                _ => throw new Exception("Unknown Algorithm")
+                _ => throw new NotSupportedException($"Unknown Algorithm: {algorithmName}")
             };
         }
 

@@ -80,9 +80,9 @@ namespace SshNet.Keygen.Extensions
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
                     return "ECDSA";
+                default:
+                    throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
-
-            throw new Exception("Unknown KeyType");
         }
 
         private static void PublicKeyData(this Key key, BinaryWriter writer)
@@ -109,6 +109,8 @@ namespace SshNet.Keygen.Extensions
                     writer.EncodeString(publicKey[0].ToByteArray().Reverse());
                     writer.EncodeString(publicKey[1].ToByteArray().Reverse());
                     break;
+                default:
+                    throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
         }
 
@@ -164,6 +166,8 @@ namespace SshNet.Keygen.Extensions
                     privWriter.EncodeString(publicKey[1].ToByteArray().Reverse());
                     privWriter.EncodeBignum2(ecdsa.PrivateKey.ToBigInteger2().ToByteArray().Reverse());
                     break;
+                default:
+                    throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
             // comment
             privWriter.EncodeString(comment);

@@ -122,7 +122,7 @@ namespace SshNet.Keygen
                     break;
                 }
                 default:
-                    throw new NotSupportedException("Unsupported KeyType");
+                    throw new NotSupportedException($"Unsupported KeyType: {typeof(TKey)}");
             }
 
             return new PrivateKeyFile(key);
@@ -135,7 +135,7 @@ namespace SshNet.Keygen
             var keySizes = rsa.LegalKeySizes[0];
             if (keySize < keySizes.MinSize || keySize > keySizes.MaxSize)
             {
-                throw new CryptographicException("Illegal Keysize");
+                throw new CryptographicException($"Illegal Keysize: {keySize}");
             }
             return rsa;
 #else

@@ -22,6 +22,7 @@ namespace SshNet.Keygen.Tests
             Assert.Throws<CryptographicException>(() => SshKey.Generate<ED25519Key>(1));
             Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>());
             Assert.Throws<CryptographicException>(() => SshKey.Generate<EcdsaKey>(1));
+            Assert.Throws<NotSupportedException>(() => SshKey.Generate<DsaKey>());
         }
 
         [Test]

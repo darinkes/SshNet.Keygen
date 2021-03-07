@@ -23,7 +23,7 @@ namespace SshNet.Keygen.Extensions
                 256 => "nistp256",
                 384 => "nistp384",
                 521 => "nistp521",
-                _ => throw new CryptographicException("Unsupported KeyLength")
+                _ => throw new CryptographicException($"Unsupported KeyLength: {ecdsa.KeySize}")
             };
         }
 
@@ -48,7 +48,7 @@ namespace SshNet.Keygen.Extensions
                 KeyBlobMagicNumber.BCRYPT_ECDSA_PRIVATE_P256_MAGIC => "nistp256",
                 KeyBlobMagicNumber.BCRYPT_ECDSA_PRIVATE_P384_MAGIC => "nistp384",
                 KeyBlobMagicNumber.BCRYPT_ECDSA_PRIVATE_P521_MAGIC => "nistp521",
-                _ => throw new CryptographicException("Unexpected Curve Magic: {magic}")
+                _ => throw new CryptographicException($"Unexpected Curve Magic: {magic}")
             };
         }
 
