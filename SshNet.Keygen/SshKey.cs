@@ -40,7 +40,6 @@ namespace SshNet.Keygen
             using var pubFile = File.Open($"{path}.pub", mode);
             using var pubWriter = new StreamWriter(pubFile);
             pubWriter.Write(key.ToOpenSshPublicFormat(comment));
-
             return key;
         }
 
@@ -100,7 +99,7 @@ namespace SshNet.Keygen
 
                     key = new EcdsaKey(
                         ecdsa.EcCurveNameSshCompat(),
-                        ecdsaParameters.UncompressedCoords(ecdsa.EcCoordsLength()),
+                        ecdsaParameters.UncompressedCoords(),
                         ecdsaParameters.D
                     );
 #else
@@ -115,8 +114,8 @@ namespace SshNet.Keygen
                     var d = reader.ReadBytes(coordLength);
 
                     key = new EcdsaKey(
-                        EcdsaExtension.GetCurve(magic),
-                        EcdsaExtension.UncompressedCoords(qx, qy),
+                        ecdsa.EcCurveNameSshCompat(magic),
+                        ecdsa.UncompressedCoords(qx, qy),
                         d
                     );
 #endif
