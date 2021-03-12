@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net40;net5.0</TargetFrameworks>
+        <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net5.0</TargetFramework>
+        <OutputType>exe</OutputType>
+        <LangVersion>9</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SshNet.PuttyKey\SshNet.PuttyKey.csproj" />
+      <EmbeddedResource Include="..\SshNet.PuttyKey.Tests\TestKeys\*">
+          <Link>TestKeys\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      </EmbeddedResource>
+    </ItemGroup>
+</Project>

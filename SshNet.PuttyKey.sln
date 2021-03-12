@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshNet.PuttyKey", "SshNet.PuttyKey\SshNet.PuttyKey.csproj", "{C0324CE2-D5A0-449E-BB5C-496E5E57B112}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshNet.PuttyKey.Tests", "SshNet.PuttyKey.Tests\SshNet.PuttyKey.Tests.csproj", "{FEA198B4-7A1D-410B-B858-95C0FD9D008D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshNet.PuttyKey.Sample", "SshNet.PuttyKey.Sample\SshNet.PuttyKey.Sample.csproj", "{79FDF8EB-FD96-477C-8287-E1449741255F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C0324CE2-D5A0-449E-BB5C-496E5E57B112}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0324CE2-D5A0-449E-BB5C-496E5E57B112}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0324CE2-D5A0-449E-BB5C-496E5E57B112}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0324CE2-D5A0-449E-BB5C-496E5E57B112}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEA198B4-7A1D-410B-B858-95C0FD9D008D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEA198B4-7A1D-410B-B858-95C0FD9D008D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEA198B4-7A1D-410B-B858-95C0FD9D008D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEA198B4-7A1D-410B-B858-95C0FD9D008D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79FDF8EB-FD96-477C-8287-E1449741255F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79FDF8EB-FD96-477C-8287-E1449741255F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79FDF8EB-FD96-477C-8287-E1449741255F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79FDF8EB-FD96-477C-8287-E1449741255F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
