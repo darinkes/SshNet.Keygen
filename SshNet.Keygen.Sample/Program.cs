@@ -10,11 +10,10 @@ namespace SshNet.Keygen.Sample
     {
         static void Main(string[] args)
         {
-            var key = SshKey.Generate("test.key", FileMode.Create,
-                new SshKeyEncryptionAes256("12345"),
-                $"{Environment.UserName}@{Environment.MachineName}"
-            );
-            var publicKey = key.ToOpenSshPublicFormat();
+            var key = SshKey.Generate("test.key", FileMode.Create, new SshKeyEncryptionAes256("12345"));
+            // var key = SshKey.Generate("test.ppk", FileMode.Create, SshKeyFormat.PuTTY, new SshKeyEncryptionAes256("12345"));
+
+            var publicKey = key.ToPublic();
             var fingerprint = key.Fingerprint();
 
             Console.WriteLine("Fingerprint: {0}", fingerprint);

@@ -38,8 +38,8 @@ namespace SshNet.Keygen.Tests
             var sshKeyEncryptions = new List<ISshKeyEncryption>()
             {
                 new SshKeyEncryptionAes256(password),
-                new SshKeyEncryptionAes256(password, Aes256Mode.Cbc),
-                new SshKeyEncryptionAes256(password, Aes256Mode.Ctr),
+                new SshKeyEncryptionAes256(password, Aes256Mode.CBC),
+                new SshKeyEncryptionAes256(password, Aes256Mode.CTR),
                 new SshKeyEncryptionNone()
             };
 
@@ -61,9 +61,20 @@ namespace SshNet.Keygen.Tests
                         else
                         {
                             _ = SshKey.Generate<TKey>(path, FileMode.Create, sshKeyEncryption, keyLength, comment);
+
+                            switch (sshKeyEncryption.CipherName)
+                            {
+                                case "aes256-ctr":
+                                    Assert.Throws<NotSupportedException>(() => SshKey.Generate<TKey>($"{path}.ppk", FileMode.Create, SshKeyFormat.PuTTY, sshKeyEncryption, keyLength, comment));
+                                    break;
+                                default:
+                                    _ = SshKey.Generate<TKey>($"{path}.ppk", FileMode.Create, SshKeyFormat.PuTTY, sshKeyEncryption, keyLength, comment);
+                                    break;
+                            }
+
                             keyFile = new PrivateKeyFile(path, password);
                             Assert.IsTrue(File.Exists(path));
-                            Assert.AreEqual(keyFile.ToOpenSshPublicFormat(), File.ReadAllText($"{path}.pub"));
+                            Assert.AreEqual(keyFile.ToPublic(), File.ReadAllText($"{path}.pub"));
                         }
 
                         Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKey).Key);
@@ -156,7 +167,7 @@ namespace SshNet.Keygen.Tests
 
             Assert.IsInstanceOf<T>(key);
             Assert.AreEqual(keyLength, key.KeyLength);
-            Assert.AreEqual(pubkeydata.Trim(), keyFile.ToOpenSshPublicFormat().Trim());
+            Assert.AreEqual(pubkeydata.Trim(), keyFile.ToPublic().Trim());
             Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint().Trim());
             Assert.AreEqual(fpMd5Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.MD5).Trim());
             Assert.AreEqual(fpSha1Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA1).Trim());

@@ -13,10 +13,11 @@ namespace SshNet.Keygen
     {
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
         internal const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
-        internal const int DefaultEcdsaSshKeyLength = 256;
-        internal const int DefaultEd25519SshKeyLength = 256;
-        internal const int DefaultRsaSshKeyLength = 2048;
-        internal static readonly string DefaultSshKeyComment = $"{Environment.UserName}@{Environment.MachineName}";
+        private const SshKeyFormat DefaultSshKeyFormat = SshKeyFormat.OpenSSH;
+        private const int DefaultEcdsaSshKeyLength = 256;
+        private const int DefaultEd25519SshKeyLength = 256;
+        private const int DefaultRsaSshKeyLength = 2048;
+        private static readonly string DefaultSshKeyComment = $"{Environment.UserName}@{Environment.MachineName}";
 
         #region KeyToFile
 
@@ -25,43 +26,85 @@ namespace SshNet.Keygen
         // All Default Key
         public static PrivateKeyFile Generate(string path, FileMode mode)
         {
-            return Generate<RsaKey>(path, mode, DefaultSshKeyEncryption, DefaultSshKeyComment);
+            return Generate<RsaKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, DefaultSshKeyComment);
+        }
+
+        // All Default Format Key
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format)
+        {
+            return Generate<RsaKey>(path, mode, format, DefaultSshKeyEncryption, DefaultSshKeyComment);
         }
 
         // Set Encryption
         public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption)
         {
-            return Generate<RsaKey>(path, mode, encryption, DefaultSshKeyComment);
+            return Generate<RsaKey>(path, mode, DefaultSshKeyFormat, encryption, DefaultSshKeyComment);
+        }
+
+        // Set Encryption Format Key
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format, ISshKeyEncryption encryption)
+        {
+            return Generate<RsaKey>(path, mode, format, encryption, DefaultSshKeyComment);
         }
 
         // Set Comment
         public static PrivateKeyFile Generate(string path, FileMode mode, string comment)
         {
-            return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, comment);
+            return Generate<RsaKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, comment);
+        }
+
+        // Set Comment Format Key
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format, string comment)
+        {
+            return Generate<RsaKey>(path, mode, format, DefaultSshKeyEncryption, comment);
         }
 
         // Set Encryption & Comment
         public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption, string comment)
         {
-            return Generate<RsaKey>(path, mode, encryption, comment);
+            return Generate<RsaKey>(path, mode, DefaultSshKeyFormat, encryption, comment);
+        }
+
+        // Set Encryption & Comment Format Key
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format, ISshKeyEncryption encryption, string comment)
+        {
+            return Generate<RsaKey>(path, mode, format, encryption, comment);
         }
 
         // Set Key Length
         public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength)
         {
-            return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
+            return Generate<RsaKey>(path, mode,DefaultSshKeyFormat, DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
+        }
+
+        // Set Key Length Format Key
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format, int keyLength)
+        {
+            return Generate<RsaKey>(path, mode, format, DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
         }
 
         // Set Key Length & Comment
         public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength, string comment)
         {
-            return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, keyLength, comment);
+            return Generate<RsaKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, keyLength, comment);
+        }
+
+        // Set Key Length & Comment Format Key
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format,  int keyLength, string comment)
+        {
+            return Generate<RsaKey>(path, mode, format,  DefaultSshKeyEncryption, keyLength, comment);
         }
 
         // Set Encryption, Key Length & Comment
         public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength, string comment)
         {
-            return Generate<RsaKey>(path, mode, encryption, keyLength, comment);
+            return Generate<RsaKey>(path, mode, DefaultSshKeyFormat, encryption, keyLength, comment);
+        }
+
+        // Set Encryption, Key Length & Comment
+        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyFormat format, ISshKeyEncryption encryption, int keyLength, string comment)
+        {
+            return Generate<RsaKey>(path, mode, format, encryption, keyLength, comment);
         }
 
         #endregion
@@ -69,23 +112,47 @@ namespace SshNet.Keygen
         // Default TKey
         public static PrivateKeyFile Generate<TKey>(string path, FileMode mode) where TKey : Key, new()
         {
-            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, DefaultSshKeyComment);
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, DefaultSshKeyComment);
+        }
+
+        // Default Format TKey
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, format, DefaultSshKeyEncryption, DefaultSshKeyComment);
         }
 
         // Set Encryption
         public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption) where TKey : Key, new()
         {
-            return Generate<TKey>(path, mode, encryption, DefaultSshKeyComment);
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, encryption, DefaultSshKeyComment);
+        }
+
+        // Set Encryption Format Key
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format, ISshKeyEncryption encryption) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, format, encryption, DefaultSshKeyComment);
         }
 
         // Set Comment
         public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, string comment) where TKey : Key, new()
         {
-            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, comment);
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, comment);
+        }
+
+        // Set Comment Format Key
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format, string comment) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, format, DefaultSshKeyEncryption, comment);
         }
 
         // Set Encryption & Comment
         public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, string comment) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, encryption, comment);
+        }
+
+        // Set Encryption & Comment
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format, ISshKeyEncryption encryption, string comment) where TKey : Key, new()
         {
             var keyLength = Activator.CreateInstance(typeof(TKey)) switch
             {
@@ -95,33 +162,62 @@ namespace SshNet.Keygen
                 _ => throw new NotSupportedException($"Unsupported KeyType: {typeof(TKey)}")
             };
 
-            return Generate<TKey>(path, mode, encryption, keyLength, comment);
+            return Generate<TKey>(path, mode, format, encryption, keyLength, comment);
         }
 
         // Set Key Length
         public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, int keyLength) where TKey : Key, new()
         {
-            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
+        }
+
+        // Set Key Length Format Key
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format, int keyLength) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, format, DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
         }
 
         // Set Key Length & Comment
         public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, int keyLength, string comment) where TKey : Key, new()
         {
-            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, keyLength, comment);
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, DefaultSshKeyEncryption, keyLength, comment);
+        }
+
+        // Set Key Length & Comment Format Key
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format, int keyLength, string comment) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, format, DefaultSshKeyEncryption, keyLength, comment);
         }
 
         // Set Encryption, Key Length & Comment
-        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength, string comment) where TKey : Key, new()
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength, string? comment) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, DefaultSshKeyFormat, encryption, keyLength, comment);
+        }
+
+        // Set Encryption, Key Length & Comment Format Key
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, SshKeyFormat format, ISshKeyEncryption encryption, int keyLength, string? comment) where TKey : Key, new()
         {
             var key = Generate<TKey>(keyLength, comment);
 
             using var file = File.Open(path, mode, FileAccess.Write);
             using var writer = new StreamWriter(file);
-            writer.Write(key.ToOpenSshFormat(encryption));
+
+            switch (format)
+            {
+                case SshKeyFormat.OpenSSH:
+                    writer.Write(key.ToOpenSshFormat(encryption));
+                    break;
+                case SshKeyFormat.PuTTY:
+                    writer.Write(key.ToPuttyFormat(encryption));
+                    break;
+                default:
+                    throw new NotSupportedException($"Not supported Key Format {format}");
+            }
 
             using var pubFile = File.Open($"{path}.pub", mode);
             using var pubWriter = new StreamWriter(pubFile);
-            pubWriter.Write(key.ToOpenSshPublicFormat());
+            pubWriter.Write(key.ToPublic());
             return key;
         }
 
@@ -154,6 +250,7 @@ namespace SshNet.Keygen
         {
             return Generate<RsaKey>(keyLength, comment);
         }
+
         #endregion
 
         // Default TKey
