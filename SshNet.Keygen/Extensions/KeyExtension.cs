@@ -8,21 +8,21 @@ namespace SshNet.Keygen.Extensions
 {
     public static class KeyExtension
     {
-        public static string ToOpenSshFormat(this Key key, string comment = "")
+        public static string ToOpenSshFormat(this Key key)
         {
-            return key.ToOpenSshFormat(SshKey.DefaultSshKeyEncryption, comment);
+            return key.ToOpenSshFormat(SshKey.DefaultSshKeyEncryption);
         }
 
-        public static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption, string comment = "")
+        public static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption)
         {
             var s = new StringWriter();
             s.Write("-----BEGIN OPENSSH PRIVATE KEY-----\n");
-            s.Write(key.PrivateKeyData(encryption, comment));
+            s.Write(key.PrivateKeyData(encryption));
             s.Write("-----END OPENSSH PRIVATE KEY-----\n");
             return s.ToString();
         }
 
-        public static string ToOpenSshPublicFormat(this Key key, string comment = "")
+        public static string ToOpenSshPublicFormat(this Key key)
         {
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
@@ -33,21 +33,18 @@ namespace SshNet.Keygen.Extensions
             stringBuilder.Append(key);
             stringBuilder.Append(' ');
             stringBuilder.Append(base64);
-            if (!string.IsNullOrEmpty(comment))
-            {
-                stringBuilder.Append(' ');
-                stringBuilder.Append(comment);
-            }
+            stringBuilder.Append(' ');
+            stringBuilder.Append(key.Comment ?? "");
             stringBuilder.Append('\n');
             return stringBuilder.ToString();
         }
 
-        public static string Fingerprint(this Key key, string comment = "")
+        public static string Fingerprint(this Key key)
         {
-            return key.Fingerprint(SshKey.DefaultHashAlgorithmName, comment);
+            return key.Fingerprint(SshKey.DefaultHashAlgorithmName);
         }
 
-        public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm, string comment = "")
+        public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm)
         {
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
@@ -63,7 +60,7 @@ namespace SshNet.Keygen.Extensions
                 ? BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':')
                 : Convert.ToBase64String(pubKeyHash, 0, pubKeyHash.Length).TrimEnd('=');
 
-            return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {comment} ({key.KeyName()})";
+            return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {key.Comment ?? ""} ({key.KeyName()})";
         }
 
         private static string KeyName(this Key key)
@@ -114,7 +111,7 @@ namespace SshNet.Keygen.Extensions
             }
         }
 
-        private static string PrivateKeyData(this Key key, ISshKeyEncryption encryption, string comment)
+        private static string PrivateKeyData(this Key key, ISshKeyEncryption encryption)
         {
             using var stream = new MemoryStream();
             using var writer = new BinaryWriter(stream);
@@ -170,7 +167,7 @@ namespace SshNet.Keygen.Extensions
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
             // comment
-            privWriter.EncodeString(comment);
+            privWriter.EncodeString(key.Comment ?? "");
 
             // private key padding (1, 2, 3, ...)
             var pad = 0;

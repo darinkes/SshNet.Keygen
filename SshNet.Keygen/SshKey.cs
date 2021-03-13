@@ -11,53 +11,184 @@ namespace SshNet.Keygen
 {
     public static class SshKey
     {
-        internal const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
         internal static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
+        internal const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
+        internal const int DefaultEcdsaSshKeyLength = 256;
+        internal const int DefaultEd25519SshKeyLength = 256;
+        internal const int DefaultRsaSshKeyLength = 2048;
+        internal static readonly string DefaultSshKeyComment = $"{Environment.UserName}@{Environment.MachineName}";
 
-        public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength = 2048, string comment = "")
+        #region KeyToFile
+
+        #region DefaultKey
+
+        // All Default Key
+        public static PrivateKeyFile Generate(string path, FileMode mode)
+        {
+            return Generate<RsaKey>(path, mode, DefaultSshKeyEncryption, DefaultSshKeyComment);
+        }
+
+        // Set Encryption
+        public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption)
+        {
+            return Generate<RsaKey>(path, mode, encryption, DefaultSshKeyComment);
+        }
+
+        // Set Comment
+        public static PrivateKeyFile Generate(string path, FileMode mode, string comment)
+        {
+            return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, comment);
+        }
+
+        // Set Encryption & Comment
+        public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption, string comment)
+        {
+            return Generate<RsaKey>(path, mode, encryption, comment);
+        }
+
+        // Set Key Length
+        public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength)
+        {
+            return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
+        }
+
+        // Set Key Length & Comment
+        public static PrivateKeyFile Generate(string path, FileMode mode, int keyLength, string comment)
         {
             return Generate<RsaKey>(path, mode,  DefaultSshKeyEncryption, keyLength, comment);
         }
 
-        public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 2048, string comment = "")
+        // Set Encryption, Key Length & Comment
+        public static PrivateKeyFile Generate(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength, string comment)
         {
             return Generate<RsaKey>(path, mode, encryption, keyLength, comment);
         }
 
-        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, int keyLength = 0, string comment = "") where TKey : Key, new()
+        #endregion
+
+        // Default TKey
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, DefaultSshKeyComment);
+        }
+
+        // Set Encryption
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, encryption, DefaultSshKeyComment);
+        }
+
+        // Set Comment
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, string comment) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, comment);
+        }
+
+        // Set Encryption & Comment
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, string comment) where TKey : Key, new()
+        {
+            var keyLength = Activator.CreateInstance(typeof(TKey)) switch
+            {
+                ED25519Key => DefaultEd25519SshKeyLength,
+                RsaKey => DefaultRsaSshKeyLength,
+                EcdsaKey => DefaultEcdsaSshKeyLength,
+                _ => throw new NotSupportedException($"Unsupported KeyType: {typeof(TKey)}")
+            };
+
+            return Generate<TKey>(path, mode, encryption, keyLength, comment);
+        }
+
+        // Set Key Length
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, int keyLength) where TKey : Key, new()
+        {
+            return Generate<TKey>(path, mode, DefaultSshKeyEncryption, keyLength, DefaultSshKeyComment);
+        }
+
+        // Set Key Length & Comment
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, int keyLength, string comment) where TKey : Key, new()
         {
             return Generate<TKey>(path, mode, DefaultSshKeyEncryption, keyLength, comment);
         }
 
-        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength = 0, string comment = "") where TKey : Key, new()
+        // Set Encryption, Key Length & Comment
+        public static PrivateKeyFile Generate<TKey>(string path, FileMode mode, ISshKeyEncryption encryption, int keyLength, string comment) where TKey : Key, new()
         {
-            var key = Generate<TKey>(keyLength);
+            var key = Generate<TKey>(keyLength, comment);
 
             using var file = File.Open(path, mode, FileAccess.Write);
             using var writer = new StreamWriter(file);
-            writer.Write(key.ToOpenSshFormat(encryption, comment));
+            writer.Write(key.ToOpenSshFormat(encryption));
 
             using var pubFile = File.Open($"{path}.pub", mode);
             using var pubWriter = new StreamWriter(pubFile);
-            pubWriter.Write(key.ToOpenSshPublicFormat(comment));
+            pubWriter.Write(key.ToOpenSshPublicFormat());
             return key;
         }
 
-        public static PrivateKeyFile Generate(int keyLength = 2048)
+        #endregion
+
+        #region KeyToObject
+
+        #region DefaultKey
+
+        // All Default Key
+        public static PrivateKeyFile Generate()
         {
-            return Generate<RsaKey>(keyLength);
+            return Generate<RsaKey>(DefaultSshKeyComment);
         }
 
-        public static PrivateKeyFile Generate<TKey>(int keyLength = 0) where TKey : Key, new()
+        // Set Comment
+        public static PrivateKeyFile Generate(string comment)
+        {
+            return Generate<RsaKey>(comment);
+        }
+
+        // Set Key Length
+        public static PrivateKeyFile Generate(int keyLength)
+        {
+            return Generate<RsaKey>(keyLength, DefaultSshKeyComment);
+        }
+
+        // Set Key Length & Comment
+        public static PrivateKeyFile Generate(int keyLength, string comment)
+        {
+            return Generate<RsaKey>(keyLength, comment);
+        }
+        #endregion
+
+        // Default TKey
+        public static PrivateKeyFile Generate<TKey>() where TKey : Key, new()
+        {
+            return Generate<TKey>(DefaultSshKeyComment);
+        }
+
+        // Set Comment
+        public static PrivateKeyFile Generate<TKey>(string comment) where TKey : Key, new()
+        {
+            var keyLength = Activator.CreateInstance(typeof(TKey)) switch
+            {
+                ED25519Key => DefaultEd25519SshKeyLength,
+                RsaKey => DefaultRsaSshKeyLength,
+                EcdsaKey => DefaultEcdsaSshKeyLength,
+                _ => throw new NotSupportedException($"Unsupported KeyType: {typeof(TKey)}")
+            };
+            return Generate<TKey>(keyLength, comment);
+        }
+
+        // Set Key Length
+        public static PrivateKeyFile Generate<TKey>(int keyLength) where TKey : Key, new()
+        {
+            return Generate<TKey>(keyLength, DefaultSshKeyComment);
+        }
+
+        // Set Key Length & Comment
+        public static PrivateKeyFile Generate<TKey>(int keyLength, string? comment) where TKey : Key, new()
         {
             Key key;
             switch (Activator.CreateInstance(typeof(TKey)))
             {
                 case ED25519Key:
                 {
-                    if (keyLength != 0)
-                        throw new CryptographicException("KeyLength is not valid for ED25519Key");
-
                     using var rngCsp = new RNGCryptoServiceProvider();
                     var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
                     rngCsp.GetBytes(seed);
@@ -125,8 +256,11 @@ namespace SshNet.Keygen
                     throw new NotSupportedException($"Unsupported KeyType: {typeof(TKey)}");
             }
 
+            key.Comment = comment ?? DefaultSshKeyComment;
             return new PrivateKeyFile(key);
         }
+
+        #endregion
 
         private static RSA CreateRSA(int keySize)
         {
