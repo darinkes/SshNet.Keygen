@@ -10,7 +10,7 @@ namespace SshNet.Keygen.Extensions
 
         public static string Fingerprint(this PrivateKeyFile keyFile)
         {
-            return keyFile.Fingerprint(SshKey.DefaultHashAlgorithmName);
+            return keyFile.Fingerprint(KeyExtension.DefaultHashAlgorithmName);
         }
 
         public static string Fingerprint(this PrivateKeyFile keyFile, SshKeyHashAlgorithmName hashAlgorithm)
@@ -33,7 +33,7 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToOpenSshFormat(this PrivateKeyFile keyFile)
         {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(SshKey.DefaultSshKeyEncryption);
+            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
         public static string ToOpenSshFormat(this PrivateKeyFile keyFile, ISshKeyEncryption encryption)
@@ -47,7 +47,7 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToPuttyFormat(this PrivateKeyFile keyFile)
         {
-            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToPuttyFormat(SshKey.DefaultSshKeyEncryption);
+            return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToPuttyFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
         public static string ToPuttyFormat(this PrivateKeyFile keyFile, ISshKeyEncryption encryption)

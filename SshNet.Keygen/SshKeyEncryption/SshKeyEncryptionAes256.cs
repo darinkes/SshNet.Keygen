@@ -115,7 +115,7 @@ namespace SshNet.Keygen.SshKeyEncryption
                     _mode = Aes256Mode.CBC;
                     cipher = new AesCipher(cipherKey, new CbcCipherMode(new byte[cipherKey.Length]), new PKCS7Padding());
                     break;
-            };
+            }
             return cipher.Encrypt(data);
         }
 

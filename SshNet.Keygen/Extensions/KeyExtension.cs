@@ -9,11 +9,13 @@ namespace SshNet.Keygen.Extensions
 {
     public static class KeyExtension
     {
+        public const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
+
         #region Fingerprint
 
         public static string Fingerprint(this Key key)
         {
-            return key.Fingerprint(SshKey.DefaultHashAlgorithmName);
+            return key.Fingerprint(DefaultHashAlgorithmName);
         }
 
         public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm)
@@ -54,7 +56,7 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToOpenSshFormat(this Key key)
         {
-            return key.ToOpenSshFormat(SshKey.DefaultSshKeyEncryption);
+            return key.ToOpenSshFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
         public static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption)
@@ -170,7 +172,7 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToPuttyFormat(this Key key)
         {
-            return key.ToPuttyFormat(SshKey.DefaultSshKeyEncryption);
+            return key.ToPuttyFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
         public static string ToPuttyFormat(this Key key, ISshKeyEncryption encryption)

@@ -50,6 +50,7 @@ Needs this Branch: https://github.com/darinkes/SSH.NET-1/tree/agent_auth
 
 ```cs
 var key = SshKey.Generate("test.key", FileMode.Create);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -65,7 +66,12 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ### Generate an RSA-2048 Key in PuTTY File, Show the Public Key and Connect with the Private Key
 
 ```cs
-var key = SshKey.Generate("test.ppk", FileMode.Create, SshKeyFormat.PuTTY);
+var keyInfo = new SshKeyGenerateInfo
+{
+    KeyFormat = SshKeyFormat.PuTTY
+};
+var key = SshKey.Generate("test.ppk", FileMode.Create, keyInfo);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -81,7 +87,12 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ### Generate an password protected RSA-2048 Key in File, Show the Public Key and Connect with the Private Key
 
 ```cs
-var key = SshKey.Generate("test.key", FileMode.Create, new SshKeyEncryptionAes256("12345"));
+var keyInfo = new SshKeyGenerateInfo
+{
+    Encryption = new SshKeyEncryptionAes256("12345")
+};
+var key = SshKey.Generate("test.key", FileMode.Create, keyInfo);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -97,7 +108,13 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ### Generate an password protected RSA-2048 Key in Putty File, Show the Public Key and Connect with the Private Key
 
 ```cs
-var key = SshKey.Generate("test.ppk", FileMode.Create, SshKeyFormat.PuTTY, new SshKeyEncryptionAes256("12345"));
+var keyInfo = new SshKeyGenerateInfo
+{
+    KeyFormat = SshKeyFormat.PuTTY,
+    Encryption = new SshKeyEncryptionAes256("12345")
+};
+var key = SshKey.Generate("test.ppk", FileMode.Create, keyInfo);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -113,6 +130,7 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ### Generate an RSA-2048 Key, Show the Public Key and Connect with the Private Key
 ```cs
 var key = SshKey.Generate();
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -127,7 +145,12 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 
 ### Generate an RSA-8192 Key, Show the Public Key and Connect with the Private Key
 ```cs
-var key = SshKey.Generate<RsaKey>(8192);
+var keyInfo = new SshKeyGenerateInfo
+{
+    KeyLength = 8192
+};
+var key = SshKey.Generate(keyInfo);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -140,9 +163,11 @@ client.Connect();
 Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
-### Generate an ECDSA256 Key, Show the Public Key and Connect with the Private Key
+### Generate an ECDSA-256 Key, Show the Public Key and Connect with the Private Key
 ```cs
-var key = SshKey.Generate<EcdsaKey>();
+var keyInfo = new SshKeyGenerateInfo(SshKeyType.ECDSA);
+var key = SshKey.Generate(keyInfo);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -157,7 +182,9 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 
 ### Generate an ED25519 Key, Show the Public Key and Connect with the Private Key
 ```cs
-var key = SshKey.Generate<ED25519Key>();
+var keyInfo = new SshKeyGenerateInfo(SshKeyType.ED25519);
+var key = SshKey.Generate(keyInfo);
+
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 
@@ -173,6 +200,7 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ### Export an existing Key from SSH.NET
 ```cs
 var keyFile = new PrivateKeyFile("test.key");
+
 var privateKey = keyFile.ToPublic();
 var publicKey = keyFile.ToOpenSshPublicFormat();
 
