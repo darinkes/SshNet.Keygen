@@ -48,7 +48,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             using var writer = new BinaryWriter(stream);
             using var rng = new RNGCryptoServiceProvider();
             rng.GetBytes(_salt);
-            writer.EncodeString(_salt);
+            writer.EncodeBinary(_salt);
             writer.EncodeUInt(Rounds);
             return stream.ToArray();
         }

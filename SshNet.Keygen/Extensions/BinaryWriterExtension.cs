@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using Renci.SshNet.Common;
 
 namespace SshNet.Keygen.Extensions
 {
@@ -12,30 +13,25 @@ namespace SshNet.Keygen.Extensions
             writer.Write('\0');
         }
 
-        public static void EncodeString(this BinaryWriter writer, string str)
+        public static void EncodeBinary(this BinaryWriter writer, string str)
         {
-            EncodeString(writer, Encoding.ASCII.GetBytes(str));
+            EncodeBinary(writer, Encoding.ASCII.GetBytes(str));
         }
 
-        public static void EncodeString(this BinaryWriter writer, MemoryStream str)
+        public static void EncodeBinary(this BinaryWriter writer, MemoryStream str)
         {
-            EncodeString(writer, str.GetBuffer(), 0, (int)str.Length);
+            EncodeBinary(writer, str.ToArray());
         }
 
-        public static void EncodeString(this BinaryWriter writer, byte[] str)
+        public static void EncodeBinary(this BinaryWriter writer, byte[] str)
         {
             EncodeUInt(writer, (uint)str.Length);
             writer.Write(str);
         }
 
-        public static void EncodeString(this BinaryWriter writer, byte[] str, int offset, int length)
+        public static void EncodeBinary(this BinaryWriter writer, BigInteger bigInteger)
         {
-            EncodeUInt(writer, (uint)length);
-            writer.Write(str, offset, length);
-        }
-
-        public static void EncodeBignum2(this BinaryWriter writer, byte[] data)
-        {
+            var data = bigInteger.ToByteArray().Reverse();
             EncodeUInt(writer, (uint)data.Length);
             writer.Write(data);
         }

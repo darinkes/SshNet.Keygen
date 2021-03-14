@@ -5,6 +5,8 @@ namespace SshNet.Keygen
 {
     public class SshKeyGenerateInfo
     {
+        public const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
+
         public static readonly ISshKeyEncryption DefaultSshKeyEncryption = new SshKeyEncryptionNone();
 
         public static readonly string DefaultSshKeyComment = $"{Environment.UserName}@{Environment.MachineName}";

@@ -10,7 +10,7 @@ namespace SshNet.Keygen.Extensions
 
         public static string Fingerprint(this IPrivateKeyFile keyFile)
         {
-            return keyFile.Fingerprint(KeyExtension.DefaultHashAlgorithmName);
+            return keyFile.Fingerprint(SshKeyGenerateInfo.DefaultHashAlgorithmName);
         }
 
         public static string Fingerprint(this IPrivateKeyFile keyFile, SshKeyHashAlgorithmName hashAlgorithm)

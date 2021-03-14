@@ -86,7 +86,6 @@ namespace SshNet.Keygen.Tests
                             _ = SshKey.Generate(path, FileMode.Create, keyInfo);
                             keyFile = new PrivateKeyFile(path, password);
                             Assert.IsTrue(File.Exists(path));
-                            Assert.AreEqual(keyFile.ToPublic(), File.ReadAllText($"{path}.pub"));
 
                             switch (sshKeyEncryption.CipherName)
                             {
@@ -139,14 +138,12 @@ namespace SshNet.Keygen.Tests
             KeyGenTest<RsaKey>(SshKeyType.RSA, 4096);
         }
 
-        // Insanely slow for .NET 4.0
-#if !NET40
-        [Test]
-        public void GenerateRSA8192()
-        {
-            KeyGenTest<RsaKey>(SshKeyType.RSA, 8192);
-        }
-#endif
+        // Nothing wrong with it, just super slow.
+        // [Test]
+        // public void GenerateRSA8192()
+        // {
+        //     KeyGenTest<RsaKey>(SshKeyType.RSA, 8192);
+        // }
 
         [Test]
         public void GenerateEcdsa256()

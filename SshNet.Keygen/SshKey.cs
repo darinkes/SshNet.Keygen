@@ -2,7 +2,6 @@
 using System.IO;
 using System.Security.Cryptography;
 using Chaos.NaCl;
-using Renci.SshNet;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
 
@@ -17,11 +16,15 @@ namespace SshNet.Keygen
 
         public static PrivateGeneratedKey Generate(string path, FileMode mode, SshKeyGenerateInfo info)
         {
-            var key = Generate(info);
-
             using var file = File.Open(path, mode, FileAccess.Write);
-            using var writer = new StreamWriter(file);
+            return Generate(file, info);
+        }
 
+        public static PrivateGeneratedKey Generate(Stream stream, SshKeyGenerateInfo info)
+        {
+            using var writer = new StreamWriter(stream);
+
+            var key = Generate(info);
             switch (info.KeyFormat)
             {
                 case SshKeyFormat.OpenSSH:
@@ -33,10 +36,6 @@ namespace SshNet.Keygen
                 default:
                     throw new NotSupportedException($"Not supported Key Format {info.KeyFormat}");
             }
-
-            using var pubFile = File.Open($"{path}.pub", mode);
-            using var pubWriter = new StreamWriter(pubFile);
-            pubWriter.Write(key.ToPublic());
             return key;
         }
 
@@ -130,7 +129,7 @@ namespace SshNet.Keygen
             var keySizes = rsa.LegalKeySizes[0];
             if (keySize < keySizes.MinSize || keySize > keySizes.MaxSize)
             {
-                throw new CryptographicException($"Illegal Keysize: {keySize}");
+                throw new CryptographicException($"Illegal Key Size: {keySize}");
             }
             return rsa;
 #else

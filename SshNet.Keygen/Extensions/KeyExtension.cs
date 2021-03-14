@@ -9,13 +9,11 @@ namespace SshNet.Keygen.Extensions
 {
     public static class KeyExtension
     {
-        public const SshKeyHashAlgorithmName DefaultHashAlgorithmName = SshKeyHashAlgorithmName.SHA256;
-
         #region Fingerprint
 
         public static string Fingerprint(this Key key)
         {
-            return key.Fingerprint(DefaultHashAlgorithmName);
+            return key.Fingerprint(SshKeyGenerateInfo.DefaultHashAlgorithmName);
         }
 
         public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm)
@@ -23,12 +21,9 @@ namespace SshNet.Keygen.Extensions
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
             key.PublicKeyData(pubWriter);
-            byte[] pubKeyHash;
 
-            using (var hash = SshKeyHashAlgorithm.Create(hashAlgorithm))
-            {
-                pubKeyHash = hash.ComputeHash(pubStream.GetBuffer(), 0, (int)pubStream.Length);
-            }
+            using var hash = SshKeyHashAlgorithm.Create(hashAlgorithm);
+            var pubKeyHash = hash.ComputeHash(pubStream.ToArray());
 
             var base64 = hashAlgorithm == SshKeyHashAlgorithmName.MD5
                 ? BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':')
@@ -46,7 +41,8 @@ namespace SshNet.Keygen.Extensions
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
             key.PublicKeyData(pubWriter);
-            var base64 = Convert.ToBase64String(pubStream.GetBuffer(), 0, (int)pubStream.Length);
+
+            var base64 = Convert.ToBase64String(pubStream.ToArray());
             return $"{key} {base64} {key.Comment ?? ""}\n";
         }
 
@@ -68,7 +64,7 @@ namespace SshNet.Keygen.Extensions
             return s.ToString();
         }
 
-                private static string KeyName(this Key key)
+        private static string KeyName(this Key key)
         {
             switch (key.ToString())
             {
@@ -93,16 +89,16 @@ namespace SshNet.Keygen.Extensions
             using var writer = new BinaryWriter(stream);
 
             writer.EncodeNullTerminatedString("openssh-key-v1"); // Auth Magic
-            writer.EncodeString(encryption.CipherName);
-            writer.EncodeString(encryption.KdfName);
-            writer.EncodeString(encryption.KdfOptions());
+            writer.EncodeBinary(encryption.CipherName);
+            writer.EncodeBinary(encryption.KdfName);
+            writer.EncodeBinary(encryption.KdfOptions());
             writer.EncodeUInt(1); // Number of Keys
 
             // public key in ssh-format
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
             key.PublicKeyData(pubWriter);
-            writer.EncodeString(pubStream);
+            writer.EncodeBinary(pubStream);
 
             // private key
             using var privStream = new MemoryStream();
@@ -111,22 +107,22 @@ namespace SshNet.Keygen.Extensions
             var rnd = new Random().Next(0, int.MaxValue);
             privWriter.EncodeInt(rnd); // check-int1
             privWriter.EncodeInt(rnd); // check-int2
-            privWriter.EncodeString(key.ToString());
+            privWriter.EncodeBinary(key.ToString());
             switch (key.ToString())
             {
                 case "ssh-ed25519":
                     var ed25519 = (ED25519Key)key;
-                    privWriter.EncodeBignum2(ed25519.PublicKey);
-                    privWriter.EncodeBignum2(ed25519.PrivateKey);
+                    privWriter.EncodeBinary(ed25519.PublicKey);
+                    privWriter.EncodeBinary(ed25519.PrivateKey);
                     break;
                 case "ssh-rsa":
                     var rsa = (RsaKey)key;
-                    privWriter.EncodeBignum2(rsa.Modulus.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.Exponent.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.D.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.InverseQ.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.P.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.Q.ToByteArray().Reverse());
+                    privWriter.EncodeBinary(rsa.Modulus);
+                    privWriter.EncodeBinary(rsa.Exponent);
+                    privWriter.EncodeBinary(rsa.D);
+                    privWriter.EncodeBinary(rsa.InverseQ);
+                    privWriter.EncodeBinary(rsa.P);
+                    privWriter.EncodeBinary(rsa.Q);
                     break;
                 case "ecdsa-sha2-nistp256":
                     // Fallthrough
@@ -135,15 +131,15 @@ namespace SshNet.Keygen.Extensions
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
                     var publicKey = ecdsa.Public;
-                    privWriter.EncodeString(publicKey[0].ToByteArray().Reverse());
-                    privWriter.EncodeString(publicKey[1].ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(ecdsa.PrivateKey.ToBigInteger2().ToByteArray().Reverse());
+                    privWriter.EncodeBinary(publicKey[0]);
+                    privWriter.EncodeBinary(publicKey[1]);
+                    privWriter.EncodeBinary(ecdsa.PrivateKey.ToBigInteger2());
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
             // comment
-            privWriter.EncodeString(key.Comment ?? "");
+            privWriter.EncodeBinary(key.Comment ?? "");
 
             // private key padding (1, 2, 3, ...)
             var pad = 0;
@@ -152,10 +148,10 @@ namespace SshNet.Keygen.Extensions
                 privWriter.Write((byte)++pad);
             }
 
-            writer.EncodeString(encryption.Encrypt(privStream.GetBuffer(), 0, (int)privStream.Length));
+            writer.EncodeBinary(encryption.Encrypt(privStream.ToArray()));
 
             // Content as Base64
-            var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
+            var base64 = Convert.ToBase64String(stream.ToArray()).ToCharArray();
             var pem = new StringWriter();
             for (var i = 0; i < base64.Length; i += 70)
             {
@@ -182,7 +178,7 @@ namespace SshNet.Keygen.Extensions
             using var pubWriter = new BinaryWriter(pubStream);
             key.PublicKeyData(pubWriter);
 
-            var publicBase64String = Convert.ToBase64String(pubStream.GetBuffer(), 0, (int) pubStream.Length).FormatNewLines(64);
+            var publicBase64String = Convert.ToBase64String(pubStream.ToArray()).FormatNewLines(64);
 
             // Private Key
             using var privStream = new MemoryStream();
@@ -191,14 +187,14 @@ namespace SshNet.Keygen.Extensions
             {
                 case "ssh-ed25519":
                     var ed25519 = (ED25519Key)key;
-                    privWriter.EncodeBignum2(ed25519.PrivateKey);
+                    privWriter.EncodeBinary(ed25519.PrivateKey);
                     break;
                 case "ssh-rsa":
                     var rsa = (RsaKey)key;
-                    privWriter.EncodeBignum2(rsa.D.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.P.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.Q.ToByteArray().Reverse());
-                    privWriter.EncodeBignum2(rsa.InverseQ.ToByteArray().Reverse());
+                    privWriter.EncodeBinary(rsa.D);
+                    privWriter.EncodeBinary(rsa.P);
+                    privWriter.EncodeBinary(rsa.Q);
+                    privWriter.EncodeBinary(rsa.InverseQ);
                     break;
                 case "ecdsa-sha2-nistp256":
                     // Fallthrough
@@ -206,7 +202,7 @@ namespace SshNet.Keygen.Extensions
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
-                    privWriter.EncodeBignum2(ecdsa.PrivateKey.ToBigInteger2().ToByteArray().Reverse());
+                    privWriter.EncodeBinary(ecdsa.PrivateKey.ToBigInteger2());
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
@@ -219,20 +215,19 @@ namespace SshNet.Keygen.Extensions
                 privWriter.Write((byte)++pad);
             }
 
-            var encrypted = encryption.PuttyEncrypt(privStream.GetBuffer(), 0, (int)privStream.Length);
+            var encrypted = encryption.PuttyEncrypt(privStream.ToArray());
             var privateBase64String = Convert.ToBase64String(encrypted).FormatNewLines(64);
 
             // MAC
             using var macStream = new MemoryStream();
             using var macWriter = new BinaryWriter(macStream);
-            macWriter.EncodeString(key.ToString());
-            macWriter.EncodeString(encryption.CipherName);
-            macWriter.EncodeString(key.Comment ?? "");
-            macWriter.EncodeString(pubStream.GetBuffer(), 0, (int) pubStream.Length);
-            macWriter.EncodeString(privStream.GetBuffer(), 0, (int) privStream.Length);
+            macWriter.EncodeBinary(key.ToString());
+            macWriter.EncodeBinary(encryption.CipherName);
+            macWriter.EncodeBinary(key.Comment ?? "");
+            macWriter.EncodeBinary(pubStream);
+            macWriter.EncodeBinary(privStream);
 
-            var hashData = new byte[macStream.Length];
-            Buffer.BlockCopy(macStream.GetBuffer(), 0, hashData, 0, (int) macStream.Length);
+            var hashData = macStream.ToArray();
 
             using var sha1 = SHA1.Create();
             var macKey = sha1.ComputeHash(Encoding.ASCII.GetBytes("putty-private-key-file-mac-key" + encryption.Passphrase));
@@ -255,17 +250,17 @@ namespace SshNet.Keygen.Extensions
 
         private static void PublicKeyData(this Key key, BinaryWriter writer)
         {
-            writer.EncodeString(key.ToString());
+            writer.EncodeBinary(key.ToString());
             switch (key.ToString())
             {
                 case "ssh-ed25519":
                     var ed25519 = (ED25519Key)key;
-                    writer.EncodeBignum2(ed25519.PublicKey);
+                    writer.EncodeBinary(ed25519.PublicKey);
                     break;
                 case "ssh-rsa":
                     var rsa = (RsaKey)key;
-                    writer.EncodeBignum2(rsa.Exponent.ToByteArray().Reverse());
-                    writer.EncodeBignum2(rsa.Modulus.ToByteArray().Reverse());
+                    writer.EncodeBinary(rsa.Exponent);
+                    writer.EncodeBinary(rsa.Modulus);
                     break;
                 case "ecdsa-sha2-nistp256":
                 // Fallthrough
@@ -274,8 +269,8 @@ namespace SshNet.Keygen.Extensions
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
                     var publicKey = ecdsa.Public;
-                    writer.EncodeString(publicKey[0].ToByteArray().Reverse());
-                    writer.EncodeString(publicKey[1].ToByteArray().Reverse());
+                    writer.EncodeBinary(publicKey[0]);
+                    writer.EncodeBinary(publicKey[1]);
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
