@@ -74,7 +74,7 @@ namespace SshNet.Keygen.Tests
                         if (!string.IsNullOrEmpty(comment))
                             puttyKeyInfo.Comment = comment;
 
-                        PrivateKeyFile keyFile;
+                        IPrivateKeyFile keyFile;
                         if (string.IsNullOrEmpty(path))
                         {
                             keyFile = SshKey.Generate(keyInfo);

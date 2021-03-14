@@ -10,12 +10,12 @@ namespace SshNet.Keygen
 {
     public static class SshKey
     {
-        public static PrivateKeyFile Generate(string path, FileMode mode)
+        public static PrivateGeneratedKey Generate(string path, FileMode mode)
         {
             return Generate(path, mode, new SshKeyGenerateInfo());
         }
 
-        public static PrivateKeyFile Generate(string path, FileMode mode, SshKeyGenerateInfo info)
+        public static PrivateGeneratedKey Generate(string path, FileMode mode, SshKeyGenerateInfo info)
         {
             var key = Generate(info);
 
@@ -40,12 +40,12 @@ namespace SshNet.Keygen
             return key;
         }
 
-        public static PrivateKeyFile Generate()
+        public static PrivateGeneratedKey Generate()
         {
             return Generate(new SshKeyGenerateInfo());
         }
 
-        public static PrivateKeyFile Generate(SshKeyGenerateInfo info)
+        public static PrivateGeneratedKey Generate(SshKeyGenerateInfo info)
         {
             Key key;
             switch (info.KeyType)
@@ -120,7 +120,7 @@ namespace SshNet.Keygen
             }
 
             key.Comment = info.Comment;
-            return new PrivateKeyFile(key);
+            return new PrivateGeneratedKey(key);
         }
 
         private static RSA CreateRSA(int keySize)

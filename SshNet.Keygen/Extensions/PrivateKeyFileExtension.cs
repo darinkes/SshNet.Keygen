@@ -8,12 +8,12 @@ namespace SshNet.Keygen.Extensions
     {
         #region Fingerprint
 
-        public static string Fingerprint(this PrivateKeyFile keyFile)
+        public static string Fingerprint(this IPrivateKeyFile keyFile)
         {
             return keyFile.Fingerprint(KeyExtension.DefaultHashAlgorithmName);
         }
 
-        public static string Fingerprint(this PrivateKeyFile keyFile, SshKeyHashAlgorithmName hashAlgorithm)
+        public static string Fingerprint(this IPrivateKeyFile keyFile, SshKeyHashAlgorithmName hashAlgorithm)
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.Fingerprint(hashAlgorithm);
         }
@@ -22,7 +22,7 @@ namespace SshNet.Keygen.Extensions
 
         #region Public
 
-        public static string ToPublic(this PrivateKeyFile keyFile)
+        public static string ToPublic(this IPrivateKeyFile keyFile)
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToPublic();
         }
@@ -31,12 +31,12 @@ namespace SshNet.Keygen.Extensions
 
         #region OpenSshFormat
 
-        public static string ToOpenSshFormat(this PrivateKeyFile keyFile)
+        public static string ToOpenSshFormat(this IPrivateKeyFile keyFile)
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
-        public static string ToOpenSshFormat(this PrivateKeyFile keyFile, ISshKeyEncryption encryption)
+        public static string ToOpenSshFormat(this IPrivateKeyFile keyFile, ISshKeyEncryption encryption)
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToOpenSshFormat(encryption);
         }
@@ -45,12 +45,12 @@ namespace SshNet.Keygen.Extensions
 
         #region PuttyFormat
 
-        public static string ToPuttyFormat(this PrivateKeyFile keyFile)
+        public static string ToPuttyFormat(this IPrivateKeyFile keyFile)
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToPuttyFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
-        public static string ToPuttyFormat(this PrivateKeyFile keyFile, ISshKeyEncryption encryption)
+        public static string ToPuttyFormat(this IPrivateKeyFile keyFile, ISshKeyEncryption encryption)
         {
             return ((KeyHostAlgorithm) keyFile.HostKey).Key.ToPuttyFormat(encryption);
         }
