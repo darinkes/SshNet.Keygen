@@ -34,7 +34,7 @@ Needs this Branch: https://github.com/darinkes/SSH.NET-1/tree/agent_auth
 ## Usage Example
 
 ```cs
-var key = PuttyKey.Open("my-key.ppk");
+var key = new PuttyKeyFile("my-key.ppk");
 
 using var client = new SshClient("ssh.foo.com", "root", key);
 client.Connect();

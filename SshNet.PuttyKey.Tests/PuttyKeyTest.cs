@@ -19,7 +19,7 @@ namespace SshNet.PuttyKey.Tests
             if (keyStream is null)
                 throw new NullReferenceException(nameof(keyStream));
 
-            var keyFile = PuttyKey.Open(keyStream, pass);
+            var keyFile = new PuttyKeyFile(keyStream, pass);
 
             Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKey).Key);
             Assert.AreEqual(keyLength, ((KeyHostAlgorithm) keyFile.HostKey).Key.KeyLength);

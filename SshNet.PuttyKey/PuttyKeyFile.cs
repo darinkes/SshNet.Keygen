@@ -14,7 +14,7 @@ using SshNet.PuttyKey.Extensions;
 
 namespace SshNet.PuttyKey
 {
-    public static class PuttyKey
+    public class PuttyKeyFile : IPrivateKeyFile
     {
         private static readonly Regex PuttyPrivateKeyRegex = new(
             @"^PuTTY-User-Key-File-(?<fileVersion>[0-9]+): *(?<keyType>[^\r\n]+)(\r|\n)+" +
@@ -27,13 +27,25 @@ namespace SshNet.PuttyKey
             @"Private-(?<macOrHash>(MAC|Hash)): *(?<hashData>[a-zA-Z0-9/+=]+)",
             RegexOptions.Compiled | RegexOptions.Multiline);
 
-        public static PrivateKeyFile Open(string filename, string? passPhrase = null)
+        public HostAlgorithm HostKey { get; private set; } = null!;
+
+        public PuttyKeyFile(Stream privateKey)
         {
-            using var keyFile = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return Open(keyFile, passPhrase);
+            Open(privateKey, null);
         }
 
-        public static PrivateKeyFile Open(Stream privateKey, string? passPhrase = null)
+        public PuttyKeyFile(string fileName, string? passPhrase = null)
+        {
+            using var keyFile = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            Open(keyFile, passPhrase);
+        }
+
+        public PuttyKeyFile(Stream privateKey, string? passPhrase)
+        {
+            Open(privateKey, passPhrase);
+        }
+
+        private void Open(Stream privateKey, string? passPhrase)
         {
             using var streamReader = new StreamReader(privateKey);
             var keyText = streamReader.ReadToEnd();
@@ -171,7 +183,7 @@ namespace SshNet.PuttyKey
             }
 
             parsedKey.Comment = comment;
-            return new PrivateKeyFile(parsedKey);
+            HostKey = new KeyHostAlgorithm(parsedKey.ToString(), parsedKey);
         }
 
         private static byte[] GetCipherKey(string? passphrase, int length)

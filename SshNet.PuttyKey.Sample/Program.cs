@@ -29,7 +29,7 @@ namespace SshNet.PuttyKey.Sample
 
             var testKeys = new[]
             {
-                // "ed25519", "ecdsa256", "ecdsa384", "ecdsa521", "rsa2048", "rsa3072", "rsa4096", "rsa8192",
+                "ed25519", "ecdsa256", "ecdsa384", "ecdsa521", "rsa2048", "rsa3072", "rsa4096", "rsa8192",
                 "ed25519pass", "ecdsa256pass", "ecdsa384pass", "ecdsa521pass", "rsa2048pass", "rsa3072pass", "rsa4096pass", "rsa8192pass",
             };
 
@@ -41,14 +41,14 @@ namespace SshNet.PuttyKey.Sample
                     if (keyStream is null)
                         throw new NullReferenceException(nameof(keyStream));
 
-                    PrivateKeyFile key;
+                    IPrivateKeyFile key;
                     if (testKey.Contains("pass"))
                     {
-                        key = PuttyKey.Open(keyStream, "12345");
+                        key = new PuttyKeyFile(keyStream, "12345");
                     }
                     else
                     {
-                        key = PuttyKey.Open(keyStream);
+                        key = new PuttyKeyFile(keyStream);
                     }
                     using var client = new SshClient("schwanensee", "root", key);
                     client.Connect();
@@ -61,7 +61,6 @@ namespace SshNet.PuttyKey.Sample
                     Console.WriteLine(e);
                 }
             }
-            Console.ReadLine();
         }
 
         private static Stream? GetKey(string keyName)
