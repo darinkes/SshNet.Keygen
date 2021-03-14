@@ -201,8 +201,8 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ```cs
 var keyFile = new PrivateKeyFile("test.key");
 
-var privateKey = keyFile.ToPublic();
-var publicKey = keyFile.ToOpenSshPublicFormat();
+var privateKey = keyFile.ToOpenSshFormat();
+var publicKey =  keyFile.ToPublic();
 
 Console.WriteLine("Private Key: {0}", privateKey);
 Console.WriteLine("Public Key: {0}", publicKey);
