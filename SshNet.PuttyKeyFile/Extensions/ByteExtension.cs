@@ -1,7 +1,7 @@
 ﻿using System;
 using Renci.SshNet.Common;
 
-namespace SshNet.PuttyKey.Extensions
+namespace SshNet.PuttyKeyFile.Extensions
 {
     internal static class ByteExtension
     {

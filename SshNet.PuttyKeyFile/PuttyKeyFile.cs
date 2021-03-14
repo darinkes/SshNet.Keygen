@@ -10,9 +10,9 @@ using Renci.SshNet.Security;
 using Renci.SshNet.Security.Cryptography.Ciphers;
 using Renci.SshNet.Security.Cryptography.Ciphers.Modes;
 using Renci.SshNet.Security.Cryptography.Ciphers.Paddings;
-using SshNet.PuttyKey.Extensions;
+using SshNet.PuttyKeyFile.Extensions;
 
-namespace SshNet.PuttyKey
+namespace SshNet.PuttyKeyFile
 {
     public class PuttyKeyFile : IPrivateKeyFile
     {

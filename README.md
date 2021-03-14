@@ -1,12 +1,12 @@
-SshNet.PuttyKey
+SshNet.PuttyKeyFile
 =============
 [SSH.NET](https://github.com/sshnet/SSH.NET) Extension to read and use Authentication Keys in PuTTY-Format
 
-[![License](https://img.shields.io/github/license/darinkes/SshNet.PuttyKey)](https://github.com/darinkes/SshNet.PuttyKey/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/darinkes/SshNet.PuttyKeyFile)](https://github.com/darinkes/SshNet.PuttyKeyFile/blob/main/LICENSE)
 
-![CodeQL](https://github.com/darinkes/SshNet.PuttyKey/workflows/CodeQL/badge.svg)
-![.NET-Ubuntu](https://github.com/darinkes/SshNet.PuttyKey/workflows/.NET-Ubuntu/badge.svg)
-![.NET-Windows](https://github.com/darinkes/SshNet.PuttyKey/workflows/.NET-Windows/badge.svg)
+![CodeQL](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/CodeQL/badge.svg)
+![.NET-Ubuntu](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/.NET-Ubuntu/badge.svg)
+![.NET-Windows](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/.NET-Windows/badge.svg)
 
 ## Status
 WIP

@@ -6,12 +6,16 @@
         <OutputType>exe</OutputType>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
+        <RootNamespace>SshNet.PuttyKeyFile.Sample</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SshNet.PuttyKey\SshNet.PuttyKey.csproj" />
-      <EmbeddedResource Include="..\SshNet.PuttyKey.Tests\TestKeys\*">
+      <EmbeddedResource Include="..\SshNet.PuttyKeyFile.Tests\TestKeys\*">
           <Link>TestKeys\%(RecursiveDir)%(Filename)%(Extension)</Link>
       </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SshNet.PuttyKeyFile\SshNet.PuttyKeyFile.csproj" />
     </ItemGroup>
 </Project>

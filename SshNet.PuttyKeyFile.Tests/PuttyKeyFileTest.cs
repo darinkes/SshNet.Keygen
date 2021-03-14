@@ -4,9 +4,9 @@ using System.Reflection;
 using NUnit.Framework;
 using Renci.SshNet.Security;
 
-namespace SshNet.PuttyKey.Tests
+namespace SshNet.PuttyKeyFile.Tests
 {
-    public class Tests
+    public class PuttyKeyFileTest
     {
         [SetUp]
         public void Setup()
@@ -84,7 +84,7 @@ namespace SshNet.PuttyKey.Tests
 
         private static Stream? GetKey(string keyName)
         {
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.PuttyKey.Tests.TestKeys.{keyName}");
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.PuttyKeyFile.Tests.TestKeys.{keyName}");
         }
     }
 }

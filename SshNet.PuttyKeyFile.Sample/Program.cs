@@ -20,7 +20,7 @@ using Renci.SshNet;
 // ssh-rsa AAAAB3NzaC1yc2EAAAABJQAABAEAiFZ4IAxGRgk4n2DRDLLNVBGp8sqSj0KTbIrhTexAJK5wN3j9aNOOA3P8Q8SSqYtyX4Fpdk1MZMZEa/e4PQTkOerGvdKUbd9TkuQYOtKMgd1393rdFNp4hb9gzLSr6QeqkAP16bKymm8LZH0YymDAqHdO0IK2bt13g5HGnbii5ok5dWx5Mt2+MOmw31qnZimt/kM/nzsHZEfd7A84HPDZZDWdxZh9A4nbANu28vupED9MkFUjOupBrY1DUXoQVVSrxxL3ghzHtAcjK905yEmZNbys7DVyd/PdDWHlDsKjv6nzAXmuvVVTlfKpQWTysq94vkLlgJIlv8xu4ON8hIhq4/K/Gr76Ko0aFlsy+82U4lVJQelMdm30G5Tpq8IEAiyclLZmnmGlVsZyc/ox5dJ0AW7XC/RQKEX3eQwszGdtSYROg9z8vc8gFDSxdxQuuBENAm+b3pPQonUSCkhmlMRkEF0Yh2Kiy5C2Au/Z+3RcdomPsV3ey6mMJV+x319BiMSa2KAyByynWZhjDU/nnWh6uK3xuwSGef3Cki/qx+4sETOlMqIt0fCzxRuQOYw4HYQHnYez8EJ3jOHT8ldAQyS8IcovtdU33D5/LrN5ICDx1supNYL+P4vrp42YZ4QdCCFrRTrQw/X3n9p5ejitptxEkr4hOoz9nfkmtXWw6KoTe8sid+ojVjsmzdf6uYLeeZuW9xgaV2VajV1+NiUl4XmtLNWn31hBxt9xqHukt5+yRDiS5vxz/iKRUHp9RnUpmRGKZbnizqkGONgdzAoU6tPrDnlSWyGok9Fzto8YZbG9TZW+WAR8j7KZztHgXUYRCVdKEsNGSMgKirK84VyuUcXBNZu87QmvW1LYYvy7tzez9yKx8f0x3H4yJZRHCIqEjgvLkFXOz4y307vZwhyDB80ogVFXzkNiq6KPpIIVPvOOin5dLexB2C6MlIQbIIEpDFXDd1Vt5/unxzJP3q77CxgL3P96fiTCEhDJmbNAAgI0xlljSt7RR41uadJEn91iAFs2Ug3Xy4Xii/CcBJCwmdYLeuKmtelAgHytvZ6IQufg4mPCpKk46oyad+cukjzfB/yEgd5uFi1KCVE00PCQzaz+erUNdqmguKOgBm+Eg+EFTbAdOlbGSICfpCLIjBD5MwnncYrDRp6diXtrdfxFV7OKoi60D7payzf3j9wyXdviEttM6i1SF5f/ePkL6N9ri/JJMzY9CkfW55BC95XdRKx0SxCkWUQAaIIbjcr4Nm+vpjNYIEaCvY8Nxg4jBXQTOGq570ozinJVGm6xB1FF/VR3NAksEF6UIyjkT9w+4juPBJHDDNTpCPN9R1AqX0MCUrO8wQIr3xmCZOtMCqOM1raKDw== rsa-key-20210312
 // ssh-rsa AAAAB3NzaC1yc2EAAAABJQAABAEA8MaKLgqJdzHuXDSHe1jbhu3q4iYtQrpQMrIxx1p9tJ5ypMsysMNppGT1lL1kQ3gFetTA4S4PlXU9pZ/scrlKItTr+HPg+0mHqW47WK9Ql7cqcbwhZBn51kBWF3Th83fjsQg34HlvGPNLxA+9DwVgmFGtg++wOuxm6X0r05ZQC4AEXajr2oYtlL/AMT0401jviVOZIOCUBMLjTivA3Jd/GHLOPdqQQvnttztpX4AUbLFL4zGnO2utOE85f8K5SWNsFSbizl9RlFOZDAuGoIgxQ3CEtXGlFSdgo5fLSWVtJvgeMMY4TyJRvXUCNrVXbRbybz9hGKNcjalt94q8p/kP2c1vy1pLxtikc1TT9h4jEMoz5KJD5OkdfDkZUxK0Ud0AyJFw7TVvy/ww8gOVbm9JbzKy1fLZn96+iJYGv0mjJul8g3UbSFD84T3nsKEfrk6j8N9uZLhFEreEJZ/EmxYvu3i3ANXXXbkXZsttnII8kEqH+tDFQpvoYjI3d3147lPq2ehqAL/+RMW/9oENa/1oCKAq+0XwWcAoNi3b49k1szQv/tSEl+fadFybRHHPDI8u6lbAauxJTZ0xWfd3kAyN31ci+8txKqD8Jsf5pBSXxpS2X8vXrzarnQduUAF18ZOooO573h+YBp5TBro3o5LO9JGygZg8ROteGxvJSnx0G1Y+MjzWG+44b0WkoZLPKg5qLgEHX8U+aCvhJG7+jIWQnIb8tWkz8RZYwmZTi0eVRzGpqEpePzrwPOoRRvSqu69wUEICeRAj4gK0/+Yboko3vgxUhBk5Q/yLQHs+A/nc75hiAmi+ZRcl8FwKtCFKmDPLdYhiWM0gSYyH1MoyiyNmkfSTzUWsERi46CmdEU0tVt3x6RIy1Mt0yM3/lV7hIXyGD9oW6lUnj4VteEdrkeYox7Ee+/W4TFhESt33dqWT2Le2MBwKAjZcR0iAsJp2zVT2qtV8saeR+6ZqswVXTjK/FhX0SdSf8kpVnWBYtS/DDtDYGmFjHyayzLCz2YBpWvka6BZAg5fWuDCpzj5/iCF6fcFVsKdPuMIm1pKczC3ypJHfK37sMQ1E2cuzVXf3xNhJu7HZuiZTEPFJiIe1exVnBv8Y4PqWZ1uvYNTvLfrNE8/NNS3SvJyFJu/dJFRQnHWQuOVJB+gWfMKWN7tnM8wmW+g+/qogWWXJrQiFq2tGRcmiwX70Eos4NxGKTCyEgUVqpuJOysNWcCluujVYaFCNL5K1QbZJ+W1JXP2t2xMKuSIs3BzkMgExYKVJqfFnMrP9NAoVyBR3r6dGkjPjaWA1X2n2MsmqCr7P93imZ4zNnECGgc6hrr8oxur/JlMYSpoRErg4wR2ue1QwApvwvdKURw== rsa-key-20210312
 
-namespace SshNet.PuttyKey.Sample
+namespace SshNet.PuttyKeyFile.Sample
 {
     class Program
     {
@@ -41,7 +41,7 @@ namespace SshNet.PuttyKey.Sample
                     if (keyStream is null)
                         throw new NullReferenceException(nameof(keyStream));
 
-                    IPrivateKeyFile key;
+                    PuttyKeyFile key;
                     if (testKey.Contains("pass"))
                     {
                         key = new PuttyKeyFile(keyStream, "12345");
@@ -65,7 +65,7 @@ namespace SshNet.PuttyKey.Sample
 
         private static Stream? GetKey(string keyName)
         {
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.PuttyKey.Sample.TestKeys.{keyName}");
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.PuttyKeyFile.Sample.TestKeys.{keyName}");
         }
     }
 }

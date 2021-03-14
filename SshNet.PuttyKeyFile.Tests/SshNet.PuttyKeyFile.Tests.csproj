@@ -19,6 +19,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SshNet.PuttyKey\SshNet.PuttyKey.csproj" />
+      <ProjectReference Include="..\SshNet.PuttyKeyFile\SshNet.PuttyKeyFile.csproj" />
     </ItemGroup>
 </Project>
