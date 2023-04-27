@@ -37,7 +37,7 @@ namespace SshNet.PuttyKeyFile.Sample
             {
                 try
                 {
-                    var keyStream = GetKey($"{testKey}.ppk");
+                    var keyStream = GetKey($"{testKey}-v3.ppk");
                     if (keyStream is null)
                         throw new NullReferenceException(nameof(keyStream));
 
@@ -50,7 +50,7 @@ namespace SshNet.PuttyKeyFile.Sample
                     {
                         key = new PuttyKeyFile(keyStream);
                     }
-                    using var client = new SshClient("schwanensee", "root", key);
+                    using var client = new SshClient("localhost", Environment.GetEnvironmentVariable("USER"), key);
                     client.Connect();
                     Console.WriteLine(client.RunCommand("hostname").Result.Trim());
                     Console.WriteLine($"Key {testKey} worked!");
