@@ -1,6 +1,3 @@
 [submodule "Chaos.NaCl"]
 	path = Chaos.NaCl
 	url = https://github.com/CodesInChaos/Chaos.NaCl
-[submodule "SSH.NET"]
-	path = SSH.NET
-	url = https://github.com/darinkes/SSH.NET-1.git
