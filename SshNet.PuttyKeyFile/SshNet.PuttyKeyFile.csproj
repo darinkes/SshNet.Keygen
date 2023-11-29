@@ -1,10 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net462;netstandard2.0</TargetFrameworks>
         <TargetFramework Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFramework>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
+        <PackageId>SshNet.PuttyKeyFile</PackageId>
+        <Version>0.2.0-beta</Version>
+        <PackageVersion>$(Version)</PackageVersion>
+        <PackageTags>ssh;scp;sftp</PackageTags>
+        <Description>Extension to read and use Authentication Keys in PuTTY-Format</Description>
+        <PackageReleaseNotes>https://github.com/darinkes/SshNet.PuttyKeyFile/releases/tag/$(PackageVersion)</PackageReleaseNotes>
+        <Copyright>Copyright (c) 2021 - 2023 Stefan Rinkes</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/darinkes/SshNet.PuttyKeyFile/</PackageProjectUrl>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Authors>darinkes</Authors>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
     <ItemGroup>
