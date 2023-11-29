@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using Renci.SshNet.Security;
@@ -21,9 +22,9 @@ namespace SshNet.PuttyKeyFile.Tests
 
             var keyFile = new PuttyKeyFile(keyStream, pass);
 
-            Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKey).Key);
-            Assert.AreEqual(keyLength, ((KeyHostAlgorithm) keyFile.HostKey).Key.KeyLength);
-            Assert.AreEqual(comment, ((KeyHostAlgorithm) keyFile.HostKey).Key.Comment);
+            Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
+            Assert.AreEqual(keyLength, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
+            Assert.AreEqual(comment, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.Comment);
         }
 
         [Test]

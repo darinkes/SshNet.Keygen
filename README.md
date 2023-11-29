@@ -11,13 +11,9 @@ SshNet.PuttyKeyFile
 ## Status
 WIP
 
-Currently builds it's own fork of [SSH.NET](https://github.com/sshnet/SSH.NET) to be able to automatically test them.
-
-Needs this Branch: https://github.com/darinkes/SSH.NET-1/tree/agent_auth
-
 ## .NET Frameworks
 
-* .NET 4.0
+* .NET 4.6
 * netstandard 2.0
 
 ## Keys

@@ -14,7 +14,7 @@ using SshNet.PuttyKeyFile.Extensions;
 
 namespace SshNet.PuttyKeyFile
 {
-    public class PuttyKeyFile : IPrivateKeyFile
+    public class PuttyKeyFile : IPrivateKeySource
     {
         private static readonly Regex PuttyPrivateKeyRegex = new(
             @"^PuTTY-User-Key-File-(?<fileVersion>[0-9]+): *(?<keyType>[^\r\n]+)(\r|\n)+" +
@@ -27,7 +27,11 @@ namespace SshNet.PuttyKeyFile
             @"Private-(?<macOrHash>(MAC|Hash)): *(?<hashData>[a-zA-Z0-9/+=]+)",
             RegexOptions.Compiled | RegexOptions.Multiline);
 
-        public HostAlgorithm HostKey { get; private set; } = null!;
+        private readonly List<HostAlgorithm> _hostAlgorithms = new();
+
+        public IReadOnlyCollection<HostAlgorithm> HostKeyAlgorithms => _hostAlgorithms;
+
+        public Key Key { get; private set; }
 
         public PuttyKeyFile(Stream privateKey)
         {
@@ -183,7 +187,9 @@ namespace SshNet.PuttyKeyFile
             }
 
             parsedKey.Comment = comment;
-            HostKey = new KeyHostAlgorithm(parsedKey.ToString(), parsedKey);
+
+            Key = parsedKey;
+            _hostAlgorithms.Add(new KeyHostAlgorithm(parsedKey.ToString(), parsedKey));
         }
 
         private static byte[] GetCipherKey(string? passphrase, int length)
