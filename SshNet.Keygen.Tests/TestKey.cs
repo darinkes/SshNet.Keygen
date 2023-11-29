@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -32,8 +33,8 @@ namespace SshNet.Keygen.Tests
         public void TestDefaultKey()
         {
             var key = SshKey.Generate();
-            Assert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm)key.HostKey).Key);
-            Assert.AreEqual(2048, ((KeyHostAlgorithm)key.HostKey).Key.KeyLength);
+            Assert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key);
+            Assert.AreEqual(2048, ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.KeyLength);
         }
 
         private static void KeyGenTest<TKey>(SshKeyType keyType, int keyLength = 0)
@@ -74,12 +75,12 @@ namespace SshNet.Keygen.Tests
                         if (!string.IsNullOrEmpty(comment))
                             puttyKeyInfo.Comment = comment;
 
-                        IPrivateKeyFile keyFile;
+                        IPrivateKeySource keyFile;
                         if (string.IsNullOrEmpty(path))
                         {
                             keyFile = SshKey.Generate(keyInfo);
                             if (keyLength != 0)
-                                Assert.AreEqual(keyLength, ((KeyHostAlgorithm)keyFile.HostKey).Key.KeyLength);
+                                Assert.AreEqual(keyLength, ((KeyHostAlgorithm)keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
                         }
                         else
                         {
@@ -100,15 +101,15 @@ namespace SshNet.Keygen.Tests
                             }
                         }
 
-                        Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKey).Key);
+                        Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
                         if (keyLength != 0)
-                            Assert.AreEqual(keyLength, (((KeyHostAlgorithm) keyFile.HostKey).Key.KeyLength));
+                            Assert.AreEqual(keyLength, (((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength));
 
                         Assert.AreEqual(
                             string.IsNullOrEmpty(comment)
                                 ? $"{Environment.UserName}@{Environment.MachineName}"
                                 : comment,
-                            ((KeyHostAlgorithm) keyFile.HostKey).Key.Comment);
+                            ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.Comment);
                     }
                 }
             }
@@ -184,7 +185,7 @@ namespace SshNet.Keygen.Tests
             var fpSha512Data = GetKey($"{keyname}.fingerprint.sha512");
             var keyFile = new PrivateKeyFile(keydata.ToStream(), passphrase);
 
-            var key = ((KeyHostAlgorithm) keyFile.HostKey).Key;
+            var key = ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key;
 
             Assert.IsInstanceOf<T>(key);
             Assert.AreEqual(keyLength, key.KeyLength);

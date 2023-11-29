@@ -1,15 +1,21 @@
-﻿using Renci.SshNet;
+﻿using System.Collections.Generic;
+using Renci.SshNet;
 using Renci.SshNet.Security;
 
 namespace SshNet.Keygen
 {
-    public class PrivateGeneratedKey : IPrivateKeyFile
+    public class PrivateGeneratedKey : IPrivateKeySource
     {
-        public HostAlgorithm HostKey { get; }
+        private readonly List<HostAlgorithm> _hostAlgorithms = new();
+
+        public IReadOnlyCollection<HostAlgorithm> HostKeyAlgorithms => _hostAlgorithms;
+
+        public Key Key { get; }
 
         public PrivateGeneratedKey(Key key)
         {
-            HostKey = new KeyHostAlgorithm(key.ToString(), key);
+            Key = key;
+            _hostAlgorithms.Add(new KeyHostAlgorithm(key.ToString(), key));
         }
     }
 }
