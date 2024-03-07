@@ -6,7 +6,6 @@ SshNet.PuttyKeyFile
 [![NuGet](https://img.shields.io/nuget/v/SshNet.PuttyKeyFile.svg?style=flat)](https://www.nuget.org/packages/SshNet.PuttyKeyFile)
 ![Nuget](https://img.shields.io/nuget/dt/SshNet.PuttyKeyFile)
 
-![CodeQL](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/CodeQL/badge.svg)
 ![.NET-Ubuntu](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/.NET-Ubuntu/badge.svg)
 ![.NET-Windows](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/.NET-Windows/badge.svg)
 ![NuGet](https://github.com/darinkes/SshNet.PuttyKeyFile/workflows/NuGet/badge.svg)

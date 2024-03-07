@@ -13,6 +13,9 @@ using Renci.SshNet.Security.Cryptography.Ciphers.Modes;
 using Renci.SshNet.Security.Cryptography.Ciphers.Paddings;
 using SshNet.PuttyKeyFile.Extensions;
 using Konscious.Security.Cryptography;
+using Renci.SshNet.Security.Cryptography;
+using HMACSHA1 = System.Security.Cryptography.HMACSHA1;
+using HMACSHA256 = System.Security.Cryptography.HMACSHA256;
 
 namespace SshNet.PuttyKeyFile
 {
@@ -40,7 +43,7 @@ namespace SshNet.PuttyKeyFile
 
         public IReadOnlyCollection<HostAlgorithm> HostKeyAlgorithms => _hostAlgorithms;
 
-        public Key Key { get; private set; }
+        public Key? Key { get; private set; }
 
         public PuttyKeyFile(Stream privateKey)
         {
@@ -115,8 +118,7 @@ namespace SshNet.PuttyKeyFile
                         case 2:
                         {
                             var cipherKey = GetCipherKey(passPhrase, 32);
-                            var cipher = new AesCipher(cipherKey, new CbcCipherMode(new byte[cipherKey.Length]),
-                                new PKCS7Padding());
+                            var cipher = new AesCipher(cipherKey, new byte[cipherKey.Length], AesCipherMode.CBC);
 
                             var privateKeyData = Convert.FromBase64String(privateLines);
                             if (privateKeyData.Length % cipher.BlockSize != 0)
@@ -168,7 +170,7 @@ namespace SshNet.PuttyKeyFile
                             macKey3.Clear();
                             macKey3.AddRange(macKey);
 
-                            var cipher = new AesCipher(cipherKey, new CbcCipherMode(crcIv), new PKCS7Padding());
+                            var cipher = new AesCipher(cipherKey, crcIv, AesCipherMode.CBC);
 
                             var privateKeyData = Convert.FromBase64String(privateLines);
                             if (privateKeyData.Length % cipher.BlockSize != 0)
@@ -264,24 +266,23 @@ namespace SshNet.PuttyKeyFile
                 throw new SshException($"PuTTY Public Key Type '{pubKeyType}' and Private Key Type '{keyType}' differ");
             }
 
-            Key parsedKey;
-            byte[] publicKey;
             byte[] unencryptedPrivateKey;
             switch (keyType)
             {
                 case "ssh-ed25519":
-                    publicKey = publicKeyReader.ReadBignum2();
                     unencryptedPrivateKey = privateKeyReader.ReadBignum2();
-                    parsedKey = new ED25519Key(publicKey.Reverse(), unencryptedPrivateKey);
+                    Key = new ED25519Key(unencryptedPrivateKey);
+                    _hostAlgorithms.Add(new KeyHostAlgorithm(Key.ToString(), Key));
                     break;
                 case "ecdsa-sha2-nistp256":
                 case "ecdsa-sha2-nistp384":
                 case "ecdsa-sha2-nistp521":
                     var len = (int)publicKeyReader.ReadUInt32();
                     var curve = Encoding.ASCII.GetString(publicKeyReader.ReadBytes(len));
-                    publicKey = publicKeyReader.ReadBignum2();
+                    var publicKey = publicKeyReader.ReadBignum2();
                     unencryptedPrivateKey = privateKeyReader.ReadBignum2();
-                    parsedKey = new EcdsaKey(curve, publicKey, unencryptedPrivateKey.TrimLeadingZeros());
+                    Key = new EcdsaKey(curve, publicKey, unencryptedPrivateKey.TrimLeadingZeros());
+                    _hostAlgorithms.Add(new KeyHostAlgorithm(Key.ToString(), Key));
                     break;
                 case "ssh-rsa":
                     var exponent = publicKeyReader.ReadBigIntWithBytes();
@@ -290,18 +291,18 @@ namespace SshNet.PuttyKeyFile
                     var p = privateKeyReader.ReadBigIntWithBytes();
                     var q = privateKeyReader.ReadBigIntWithBytes();
                     var inverseQ = privateKeyReader.ReadBigIntWithBytes();
-                    parsedKey = new RsaKey(modulus, exponent, d, p, q, inverseQ);
+                    var rsaKey = new RsaKey(modulus, exponent, d, p, q, inverseQ);
+                    Key = rsaKey;
+                    _hostAlgorithms.Add(new KeyHostAlgorithm("ssh-rsa", Key));
+                    _hostAlgorithms.Add(new KeyHostAlgorithm("rsa-sha2-512", Key, new RsaDigitalSignature(rsaKey, HashAlgorithmName.SHA512)));
+                    _hostAlgorithms.Add(new KeyHostAlgorithm("rsa-sha2-256", Key, new RsaDigitalSignature(rsaKey, HashAlgorithmName.SHA256)));
                     break;
                 default:
                     throw new SshException("PuTTY key type '" + keyType + "' is not supported.");
             }
 
-            parsedKey.Comment = comment;
-
-            Key = parsedKey;
-            _hostAlgorithms.Add(new KeyHostAlgorithm(parsedKey.ToString(), parsedKey));
+            Key.Comment = comment;
         }
-
 
         private static byte[] StringToByteArray(string hex)
         {

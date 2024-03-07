@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Renci.SshNet.Security;
 
 namespace SshNet.PuttyKeyFile.Tests
@@ -14,7 +15,7 @@ namespace SshNet.PuttyKeyFile.Tests
         {
         }
 
-        private void TestKey<TKey>(string keyName, string versionSuffix, string comment, int keyLength = 0, string? pass = null) where TKey : Key, new()
+        private void TestKey<TKey>(string keyName, string versionSuffix, string comment, int keyLength = 0, string? pass = null) where TKey : Key
         {
             var keyStream = GetKey($"{keyName}-v{versionSuffix}.ppk");
             if (keyStream is null)
@@ -22,9 +23,10 @@ namespace SshNet.PuttyKeyFile.Tests
 
             var keyFile = new PuttyKeyFile(keyStream, pass);
 
-            Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
-            Assert.AreEqual(keyLength, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
-            Assert.AreEqual(comment, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.Comment);
+            ClassicAssert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
+            ClassicAssert.AreEqual(keyLength, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
+            ClassicAssert.AreEqual(comment, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.Comment);
+            ClassicAssert.AreEqual(keyFile.Key is RsaKey ? 3 : 1, keyFile.HostKeyAlgorithms.Count);
         }
 
         [Test]
