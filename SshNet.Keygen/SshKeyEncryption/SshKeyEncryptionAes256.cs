@@ -66,11 +66,11 @@ namespace SshNet.Keygen.SshKeyEncryption
             switch(_mode)
             {
                 case Aes256Mode.CBC:
-                    cipher = new AesCipher(key, new CbcCipherMode(iv), new PKCS7Padding());
+                    cipher = new AesCipher(key, iv, AesCipherMode.CBC);
                     break;
                 default:
                     _mode = Aes256Mode.CTR;
-                    cipher = new AesCipher(key, new CtrCipherMode(iv), new PKCS7Padding());
+                    cipher = new AesCipher(key, iv, AesCipherMode.CTR);
                     break;
             }
 
@@ -113,7 +113,7 @@ namespace SshNet.Keygen.SshKeyEncryption
                     throw new NotSupportedException($"Unsupported AES Mode: {_mode}");
                 default:
                     _mode = Aes256Mode.CBC;
-                    cipher = new AesCipher(cipherKey, new CbcCipherMode(new byte[cipherKey.Length]), new PKCS7Padding());
+                    cipher = new AesCipher(cipherKey, new byte[cipherKey.Length], AesCipherMode.CBC);
                     break;
             }
             return cipher.Encrypt(data);
