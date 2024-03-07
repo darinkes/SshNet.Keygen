@@ -54,8 +54,8 @@ namespace SshNet.Keygen
                     using var rngCsp = new RNGCryptoServiceProvider();
                     var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
                     rngCsp.GetBytes(seed);
-                    Ed25519.KeyPairFromSeed(out var edPubKey, out var edKey, seed);
-                    key = new ED25519Key(edPubKey, edKey.Reverse());
+                    Ed25519.KeyPairFromSeed(out _, out var edKey, seed);
+                    key = new ED25519Key(edKey.Reverse());
                     break;
                 }
                 case SshKeyType.RSA:

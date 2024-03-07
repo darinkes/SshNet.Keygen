@@ -23,7 +23,7 @@ namespace SshNet.Keygen.Sample
             Console.WriteLine("Add this to your .ssh/authorized_keys of the SSH Server: {0}", publicKey);
             Console.ReadLine();
 
-            using var client = new SshClient("ssh.foo.com", "root", key);
+            using var client = new SshClient("localhost", Environment.GetEnvironmentVariable("USER") ?? Environment.GetEnvironmentVariable("USERNAME"), key);
             client.Connect();
             Console.WriteLine(client.RunCommand("hostname").Result);
         }

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Renci.SshNet;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
@@ -33,8 +34,8 @@ namespace SshNet.Keygen.Tests
         public void TestDefaultKey()
         {
             var key = SshKey.Generate();
-            Assert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key);
-            Assert.AreEqual(2048, ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.KeyLength);
+            ClassicAssert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key);
+            ClassicAssert.AreEqual(2048, ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.KeyLength);
         }
 
         private static void KeyGenTest<TKey>(SshKeyType keyType, int keyLength = 0)
@@ -80,13 +81,13 @@ namespace SshNet.Keygen.Tests
                         {
                             keyFile = SshKey.Generate(keyInfo);
                             if (keyLength != 0)
-                                Assert.AreEqual(keyLength, ((KeyHostAlgorithm)keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
+                                ClassicAssert.AreEqual(keyLength, ((KeyHostAlgorithm)keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
                         }
                         else
                         {
                             _ = SshKey.Generate(path, FileMode.Create, keyInfo);
                             keyFile = new PrivateKeyFile(path, password);
-                            Assert.IsTrue(File.Exists(path));
+                            ClassicAssert.IsTrue(File.Exists(path));
 
                             switch (sshKeyEncryption.CipherName)
                             {
@@ -96,16 +97,16 @@ namespace SshNet.Keygen.Tests
                                 default:
                                     File.Delete($"{path}.ppk");
                                     _ = SshKey.Generate($"{path}.ppk", FileMode.Create, puttyKeyInfo);
-                                    Assert.IsTrue(File.Exists($"{path}.ppk"));
+                                    ClassicAssert.IsTrue(File.Exists($"{path}.ppk"));
                                     break;
                             }
                         }
 
-                        Assert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
+                        ClassicAssert.IsInstanceOf<TKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
                         if (keyLength != 0)
-                            Assert.AreEqual(keyLength, (((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength));
+                            ClassicAssert.AreEqual(keyLength, (((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength));
 
-                        Assert.AreEqual(
+                        ClassicAssert.AreEqual(
                             string.IsNullOrEmpty(comment)
                                 ? $"{Environment.UserName}@{Environment.MachineName}"
                                 : comment,
@@ -187,15 +188,15 @@ namespace SshNet.Keygen.Tests
 
             var key = ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key;
 
-            Assert.IsInstanceOf<T>(key);
-            Assert.AreEqual(keyLength, key.KeyLength);
-            Assert.AreEqual(pubkeydata.Trim(), keyFile.ToPublic().Trim());
-            Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint().Trim());
-            Assert.AreEqual(fpMd5Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.MD5).Trim());
-            Assert.AreEqual(fpSha1Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA1).Trim());
-            Assert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA256).Trim());
-            Assert.AreEqual(fpSha384Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA384).Trim());
-            Assert.AreEqual(fpSha512Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA512).Trim());
+            ClassicAssert.IsInstanceOf<T>(key);
+            ClassicAssert.AreEqual(keyLength, key.KeyLength);
+            ClassicAssert.AreEqual(pubkeydata.Trim(), keyFile.ToPublic().Trim());
+            ClassicAssert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint().Trim());
+            ClassicAssert.AreEqual(fpMd5Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.MD5).Trim());
+            ClassicAssert.AreEqual(fpSha1Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA1).Trim());
+            ClassicAssert.AreEqual(fpSha256Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA256).Trim());
+            ClassicAssert.AreEqual(fpSha384Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA384).Trim());
+            ClassicAssert.AreEqual(fpSha512Data.Trim(), keyFile.Fingerprint(SshKeyHashAlgorithmName.SHA512).Trim());
 
             // We cannot test the result of the PrivateKey Export, since Random CheckInts are random...
             // So just check the key can be reimport again.
