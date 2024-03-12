@@ -9,18 +9,18 @@ namespace SshNet.Keygen
 {
     public static class SshKey
     {
-        public static PrivateGeneratedKey Generate(string path, FileMode mode)
+        public static GeneratedPrivateKey Generate(string path, FileMode mode)
         {
             return Generate(path, mode, new SshKeyGenerateInfo());
         }
 
-        public static PrivateGeneratedKey Generate(string path, FileMode mode, SshKeyGenerateInfo info)
+        public static GeneratedPrivateKey Generate(string path, FileMode mode, SshKeyGenerateInfo info)
         {
             using var file = File.Open(path, mode, FileAccess.Write);
             return Generate(file, info);
         }
 
-        public static PrivateGeneratedKey Generate(Stream stream, SshKeyGenerateInfo info)
+        public static GeneratedPrivateKey Generate(Stream stream, SshKeyGenerateInfo info)
         {
             using var writer = new StreamWriter(stream);
 
@@ -39,12 +39,12 @@ namespace SshNet.Keygen
             return key;
         }
 
-        public static PrivateGeneratedKey Generate()
+        public static GeneratedPrivateKey Generate()
         {
             return Generate(new SshKeyGenerateInfo());
         }
 
-        public static PrivateGeneratedKey Generate(SshKeyGenerateInfo info)
+        public static GeneratedPrivateKey Generate(SshKeyGenerateInfo info)
         {
             Key key;
             switch (info.KeyType)
@@ -119,7 +119,7 @@ namespace SshNet.Keygen
             }
 
             key.Comment = info.Comment;
-            return new PrivateGeneratedKey(key);
+            return new GeneratedPrivateKey(key);
         }
 
         private static RSA CreateRSA(int keySize)
