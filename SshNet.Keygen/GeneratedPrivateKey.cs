@@ -6,7 +6,7 @@ using Renci.SshNet.Security.Cryptography;
 
 namespace SshNet.Keygen
 {
-    public class PrivateGeneratedKey : IPrivateKeySource
+    public class GeneratedPrivateKey : IPrivateKeySource
     {
         private readonly List<HostAlgorithm> _hostAlgorithms = new();
 
@@ -14,7 +14,7 @@ namespace SshNet.Keygen
 
         public Key Key { get; }
 
-        public PrivateGeneratedKey(Key key)
+        public GeneratedPrivateKey(Key key)
         {
             Key = key;
             _hostAlgorithms.Add(new KeyHostAlgorithm(key.ToString(), key));
