@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net462;netstandard2.0</TargetFrameworks>
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net48;netstandard2.0</TargetFrameworks>
         <TargetFramework Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFramework>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
@@ -27,7 +27,7 @@
         <PackageReference Include="SSH.NET" Version="2024.0.0" />
     </ItemGroup>
 
-    <ItemGroup Condition=" '$(TargetFramework)' != 'net462' ">
+    <ItemGroup Condition=" '$(TargetFramework)' != 'net48' ">
         <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
     </ItemGroup>
 </Project>

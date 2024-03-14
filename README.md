@@ -15,7 +15,7 @@ WIP
 
 ## .NET Frameworks
 
-* .NET 4.6
+* .NET 4.8
 * netstandard 2.0
 
 ## Keys
