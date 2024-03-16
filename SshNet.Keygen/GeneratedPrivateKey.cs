@@ -14,9 +14,13 @@ namespace SshNet.Keygen
 
         public Key Key { get; }
 
-        public GeneratedPrivateKey(Key key)
+        public SshKeyGenerateInfo Info { get; }
+
+        public GeneratedPrivateKey(Key key, SshKeyGenerateInfo info)
         {
             Key = key;
+            Info = info;
+
             _hostAlgorithms.Add(new KeyHostAlgorithm(key.ToString(), key));
 
             if (Key is not RsaKey rsaKey)

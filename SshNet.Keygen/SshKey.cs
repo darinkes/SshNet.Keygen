@@ -119,7 +119,7 @@ namespace SshNet.Keygen
             }
 
             key.Comment = info.Comment;
-            return new GeneratedPrivateKey(key);
+            return new GeneratedPrivateKey(key, info);
         }
 
         private static RSA CreateRSA(int keySize)
