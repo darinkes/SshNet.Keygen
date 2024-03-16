@@ -34,7 +34,11 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToOpenSshFormat(this IPrivateKeySource keyFile)
         {
-            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToOpenSshFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
+            var encryption = SshKeyGenerateInfo.DefaultSshKeyEncryption;
+            if (keyFile is GeneratedPrivateKey generatedPrivateKey)
+                encryption = generatedPrivateKey.Info.Encryption;
+
+            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToOpenSshFormat(encryption);
         }
 
         public static string ToOpenSshFormat(this IPrivateKeySource keyFile, ISshKeyEncryption encryption)
@@ -48,7 +52,11 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToPuttyFormat(this IPrivateKeySource keyFile)
         {
-            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
+            var encryption = SshKeyGenerateInfo.DefaultSshKeyEncryption;
+            if (keyFile is GeneratedPrivateKey generatedPrivateKey)
+                encryption = generatedPrivateKey.Info.Encryption;
+
+            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyFormat(encryption);
         }
 
         public static string ToPuttyFormat(this IPrivateKeySource keyFile, ISshKeyEncryption encryption)
