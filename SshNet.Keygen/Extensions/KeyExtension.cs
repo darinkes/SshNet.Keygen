@@ -11,12 +11,12 @@ namespace SshNet.Keygen.Extensions
     {
         #region Fingerprint
 
-        public static string Fingerprint(this Key key)
+        internal static string Fingerprint(this Key key)
         {
             return key.Fingerprint(SshKeyGenerateInfo.DefaultHashAlgorithmName);
         }
 
-        public static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm)
+        internal static string Fingerprint(this Key key, SshKeyHashAlgorithmName hashAlgorithm)
         {
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
@@ -29,14 +29,12 @@ namespace SshNet.Keygen.Extensions
                 ? BitConverter.ToString(pubKeyHash).ToLower().Replace('-', ':')
                 : Convert.ToBase64String(pubKeyHash, 0, pubKeyHash.Length).TrimEnd('=');
 
-            return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {key.Comment ?? ""} ({key.KeyName()})";
+            return $"{key.KeyLength} {SshKeyHashAlgorithm.HashAlgorithmName(hashAlgorithm)}:{base64} {key.Comment} ({key.KeyName()})";
         }
 
         #endregion
 
-        #region Public
-
-        public static string ToPublic(this Key key)
+        internal static string ToPublic(this Key key)
         {
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
@@ -46,16 +44,14 @@ namespace SshNet.Keygen.Extensions
             return $"{key} {base64} {key.Comment ?? ""}\n";
         }
 
-        #endregion
-
         #region OpenSshFormat
 
-        public static string ToOpenSshFormat(this Key key)
+        internal static string ToOpenSshFormat(this Key key)
         {
             return key.ToOpenSshFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
         }
 
-        public static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption)
+        internal static string ToOpenSshFormat(this Key key, ISshKeyEncryption encryption)
         {
             var s = new StringWriter();
             s.Write("-----BEGIN OPENSSH PRIVATE KEY-----\n");
@@ -139,7 +135,7 @@ namespace SshNet.Keygen.Extensions
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
             // comment
-            privWriter.EncodeBinary(key.Comment ?? "");
+            privWriter.EncodeBinary(key.Comment);
 
             // private key padding (1, 2, 3, ...)
             var pad = 0;
@@ -166,13 +162,30 @@ namespace SshNet.Keygen.Extensions
 
         #region PuttyFormat
 
-        public static string ToPuttyFormat(this Key key)
+        internal static string ToPuttyPublicFormat(this Key key)
         {
-            return key.ToPuttyFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption);
+            using var pubStream = new MemoryStream();
+            using var pubWriter = new BinaryWriter(pubStream);
+            key.PublicKeyData(pubWriter);
+
+            var s = new StringWriter();
+            s.Write("---- BEGIN SSH2 PUBLIC KEY ----\n");
+            s.Write($"Comment: \"{key.Comment}\"\n");
+            s.Write(Convert.ToBase64String(pubStream.ToArray()).FormatNewLines(64) + "\n");
+            s.Write("---- END SSH2 PUBLIC KEY ----\n");
+            return s.ToString();
         }
 
-        public static string ToPuttyFormat(this Key key, ISshKeyEncryption encryption)
+        internal static string ToPuttyFormat(this Key key, SshKeyFormat sshKeyFormat)
         {
+            return key.ToPuttyFormat(SshKeyGenerateInfo.DefaultSshKeyEncryption, sshKeyFormat);
+        }
+
+        internal static string ToPuttyFormat(this Key key, ISshKeyEncryption encryption, SshKeyFormat sshKeyFormat)
+        {
+            if (sshKeyFormat is not SshKeyFormat.PuTTYv2 and not SshKeyFormat.PuTTYv3)
+                throw new NotSupportedException($"Unsupported PuTTY Key Format {sshKeyFormat}");
+
             // Public Key
             using var pubStream = new MemoryStream();
             using var pubWriter = new BinaryWriter(pubStream);
@@ -215,34 +228,70 @@ namespace SshNet.Keygen.Extensions
                 privWriter.Write((byte)++pad);
             }
 
-            var encrypted = encryption.PuttyEncrypt(privStream.ToArray());
-            var privateBase64String = Convert.ToBase64String(encrypted).FormatNewLines(64);
-
             // MAC
             using var macStream = new MemoryStream();
             using var macWriter = new BinaryWriter(macStream);
             macWriter.EncodeBinary(key.ToString());
             macWriter.EncodeBinary(encryption.CipherName);
-            macWriter.EncodeBinary(key.Comment ?? "");
+            macWriter.EncodeBinary(key.Comment);
             macWriter.EncodeBinary(pubStream);
             macWriter.EncodeBinary(privStream);
 
             var hashData = macStream.ToArray();
 
-            using var sha1 = SHA1.Create();
-            var macKey = sha1.ComputeHash(Encoding.ASCII.GetBytes("putty-private-key-file-mac-key" + encryption.Passphrase));
-            using var hmac = new HMACSHA1(macKey);
-            var macHash = hmac.ComputeHash(hashData);
+            string privateBase64String;
+            PuttyV3Encryption? puttyV3Encryption = null;
+            byte[] macHash = new byte[0];
+            if (sshKeyFormat is SshKeyFormat.PuTTYv2)
+            {
+                byte[] encrypted = encryption.PuttyV2Encrypt(privStream.ToArray());
+                privateBase64String = Convert.ToBase64String(encrypted).FormatNewLines(64);
+
+                using var sha1 = SHA1.Create();
+                var macKey = sha1.ComputeHash(Encoding.ASCII.GetBytes("putty-private-key-file-mac-key" + encryption.Passphrase));
+                using var hmac = new HMACSHA1(macKey);
+                macHash = hmac.ComputeHash(hashData);
+            }
+            else
+            {
+                puttyV3Encryption = encryption.PuttyV3Encrypt(privStream.ToArray());
+                privateBase64String = Convert.ToBase64String(puttyV3Encryption.Result).FormatNewLines(64);
+
+                using var hmac = new HMACSHA256(puttyV3Encryption.MacKey);
+                macHash = hmac.ComputeHash(hashData);
+            }
 
             var s = new StringWriter();
-            s.Write($"PuTTY-User-Key-File-2: {key}\n");
+            if (sshKeyFormat is SshKeyFormat.PuTTYv2)
+            {
+                    s.Write($"PuTTY-User-Key-File-2: {key}\n");
+                    s.Write($"Encryption: {encryption.CipherName}\n");
+                    s.Write($"Comment: {key.Comment}\n");
+                    s.Write($"Public-Lines: {publicBase64String.Split('\n').Length}\n");
+                    s.Write($"{publicBase64String}\n");
+                    s.Write($"Private-Lines: {privateBase64String.Split('\n').Length}\n");
+                    s.Write($"{privateBase64String}\n");
+                    s.Write($"Private-MAC: {BitConverter.ToString(macHash).Replace("-", "").ToLower()}\n");
+                    return s.ToString();
+            }
+
+            s.Write($"PuTTY-User-Key-File-3: {key}\n");
             s.Write($"Encryption: {encryption.CipherName}\n");
-            s.Write($"Comment: {key.Comment ?? ""}\n");
+            s.Write($"Comment: {key.Comment}\n");
             s.Write($"Public-Lines: {publicBase64String.Split('\n').Length}\n");
             s.Write($"{publicBase64String}\n");
+            if (puttyV3Encryption?.Salt is not null)
+            {
+                s.Write($"Key-Derivation: {puttyV3Encryption.KeyDerivation}\n");
+                s.Write($"Argon2-Memory: {puttyV3Encryption.MemorySize}\n");
+                s.Write($"Argon2-Passes: {puttyV3Encryption.Iterations}\n");
+                s.Write($"Argon2-Parallelism: {puttyV3Encryption.DegreeOfParallelism}\n");
+                s.Write($"Argon2-Salt: {BitConverter.ToString(puttyV3Encryption.Salt).Replace("-", "").ToLower()}\n");
+            }
             s.Write($"Private-Lines: {privateBase64String.Split('\n').Length}\n");
             s.Write($"{privateBase64String}\n");
             s.Write($"Private-MAC: {BitConverter.ToString(macHash).Replace("-", "").ToLower()}\n");
+
             return s.ToString();
         }
 

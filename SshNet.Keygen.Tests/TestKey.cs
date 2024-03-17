@@ -28,6 +28,9 @@ namespace SshNet.Keygen.Tests
 
             keyInfo.KeyType = SshKeyType.RSA;
             Assert.Throws<CryptographicException>(() => SshKey.Generate(keyInfo));
+
+            var key = SshKey.Generate();
+            Assert.Throws<NotSupportedException>(() => key.ToPuttyFormat(SshKeyFormat.OpenSSH));
         }
 
         [Test]
@@ -57,24 +60,14 @@ namespace SshNet.Keygen.Tests
                 {
                     foreach (var sshKeyEncryption in sshKeyEncryptions)
                     {
-                        TestContext.WriteLine($"File: {path} - Encryption: {sshKeyEncryption}");
+                        TestContext.WriteLine($"File: '{path}' - Encryption: '{sshKeyEncryption}' - Comment: '{comment}'");
 
                         var keyInfo = new SshKeyGenerateInfo(keyType)
                         {
                             Encryption = sshKeyEncryption,
-                            KeyLength = keyLength
+                            KeyLength = keyLength,
+                            Comment = comment
                         };
-                        if (!string.IsNullOrEmpty(comment))
-                            keyInfo.Comment = comment;
-
-                        var puttyKeyInfo = new SshKeyGenerateInfo(keyType)
-                        {
-                            KeyFormat = SshKeyFormat.PuTTY,
-                            Encryption = sshKeyEncryption,
-                            KeyLength = keyLength
-                        };
-                        if (!string.IsNullOrEmpty(comment))
-                            puttyKeyInfo.Comment = comment;
 
                         IPrivateKeySource keyFile;
                         if (string.IsNullOrEmpty(path))
@@ -85,20 +78,67 @@ namespace SshNet.Keygen.Tests
                         }
                         else
                         {
-                            _ = SshKey.Generate(path, FileMode.Create, keyInfo);
-                            keyFile = new PrivateKeyFile(path, password);
+                            var genKey = SshKey.Generate(path, FileMode.Create, keyInfo);
                             ClassicAssert.IsTrue(File.Exists(path));
+                            keyFile = new PrivateKeyFile(path, password);
+                            _ = new PrivateKeyFile(genKey.ToOpenSshFormat().ToStream(), password);
 
-                            switch (sshKeyEncryption.CipherName)
+                            ClassicAssert.AreEqual(genKey.ToOpenSshPublicFormat(), genKey.ToPublic());
+                            ClassicAssert.AreEqual(genKey.ToOpenSshPublicFormat(), keyFile.ToPublic());
+                            ClassicAssert.AreEqual(1, genKey.ToPublic().Split('\n').Length - 1);
+                            ClassicAssert.AreEqual(1, keyFile.ToPublic().Split('\n').Length - 1);
+
+                            StringAssert.Contains(((KeyHostAlgorithm) genKey.HostKeyAlgorithms.First()).Key.ToString(), genKey.ToPublic());
+                            StringAssert.Contains(comment ?? SshKeyGenerateInfo.DefaultSshKeyComment, genKey.ToPublic());
+                            StringAssert.Contains(((KeyHostAlgorithm) genKey.HostKeyAlgorithms.First()).Key.ToString(), genKey.ToOpenSshPublicFormat());
+                            StringAssert.Contains(comment ?? SshKeyGenerateInfo.DefaultSshKeyComment, genKey.ToOpenSshPublicFormat());
+
+                            foreach (var keyFormat in new List<SshKeyFormat> { SshKeyFormat.PuTTYv2 , SshKeyFormat.PuTTYv3 })
                             {
-                                case "aes256-ctr":
-                                    Assert.Throws<NotSupportedException>(() => SshKey.Generate($"{path}.ppk", FileMode.Create, puttyKeyInfo));
-                                    break;
-                                default:
-                                    File.Delete($"{path}.ppk");
-                                    _ = SshKey.Generate($"{path}.ppk", FileMode.Create, puttyKeyInfo);
-                                    ClassicAssert.IsTrue(File.Exists($"{path}.ppk"));
-                                    break;
+                                keyInfo.KeyFormat = keyFormat;
+                                var puttyFile = $"{path}-{keyFormat}.ppk";
+
+                                switch (sshKeyEncryption.CipherName)
+                                {
+                                    case "aes256-ctr":
+                                        Assert.Throws<NotSupportedException>(() => SshKey.Generate(puttyFile, FileMode.Create, keyInfo));
+                                        break;
+                                    default:
+                                        File.Delete(puttyFile);
+                                        var puttyKey = SshKey.Generate(puttyFile, FileMode.Create, keyInfo);
+                                        ClassicAssert.IsTrue(File.Exists(puttyFile));
+
+                                        foreach (var puttyContent in new List<string> { File.ReadAllText(puttyFile), puttyKey.ToPuttyFormat() })
+                                        {
+                                            StringAssert.Contains($"Comment: {comment ?? SshKeyGenerateInfo.DefaultSshKeyComment}", puttyContent);
+                                            StringAssert.Contains($"Encryption: {sshKeyEncryption.CipherName}", puttyContent);
+
+                                            switch (keyFormat)
+                                            {
+                                                case SshKeyFormat.PuTTYv2:
+                                                    StringAssert.Contains("PuTTY-User-Key-File-2: ", puttyContent);
+                                                    break;
+                                                case SshKeyFormat.PuTTYv3:
+                                                    StringAssert.Contains("PuTTY-User-Key-File-3: ", puttyContent);
+                                                    if (keyInfo.Encryption is SshKeyEncryptionAes256)
+                                                    {
+                                                        StringAssert.Contains("Key-Derivation: Argon2id", puttyContent);
+                                                        StringAssert.Contains("Argon2-Memory: 8192", puttyContent);
+                                                        StringAssert.Contains("Argon2-Passes: 22", puttyContent);
+                                                        StringAssert.Contains("Argon2-Parallelism: 1", puttyContent);
+                                                        StringAssert.Contains("Argon2-Salt:", puttyContent);
+                                                    }
+                                                    break;
+                                            }
+                                        }
+
+                                        var puttyPubContent = puttyKey.ToPuttyPublicFormat();
+                                        ClassicAssert.AreEqual(puttyPubContent, puttyKey.ToPublic());
+                                        StringAssert.Contains("---- BEGIN SSH2 PUBLIC KEY ----\n", puttyPubContent);
+                                        StringAssert.Contains($"Comment: \"{comment ?? SshKeyGenerateInfo.DefaultSshKeyComment}\"\n", puttyPubContent);
+                                        StringAssert.Contains("---- END SSH2 PUBLIC KEY ----\n", puttyPubContent);
+                                        break;
+                                }
                             }
                         }
 
@@ -106,10 +146,7 @@ namespace SshNet.Keygen.Tests
                         if (keyLength != 0)
                             ClassicAssert.AreEqual(keyLength, (((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength));
 
-                        ClassicAssert.AreEqual(
-                            string.IsNullOrEmpty(comment)
-                                ? $"{Environment.UserName}@{Environment.MachineName}"
-                                : comment,
+                        ClassicAssert.AreEqual(comment ?? SshKeyGenerateInfo.DefaultSshKeyComment,
                             ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.Comment);
                     }
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Konscious.Security.Cryptography;
 using Renci.SshNet.Security.Cryptography.Ciphers;
 using Renci.SshNet.Security.Cryptography.Ciphers.Modes;
 using Renci.SshNet.Security.Cryptography.Ciphers.Paddings;
@@ -22,6 +23,7 @@ namespace SshNet.Keygen.SshKeyEncryption
         public string KdfName => "bcrypt";
         public int BlockSize => 16;
         public string Passphrase => _passphrase;
+        public PuttyV3Encryption PuttyV3Encryption => _puttyV3Encryption;
 
         private const int SaltLen = 16;
         private const int Rounds = 16;
@@ -29,15 +31,18 @@ namespace SshNet.Keygen.SshKeyEncryption
         private readonly byte[] _passPhraseBytes;
         private readonly byte[] _salt;
         private readonly string _passphrase;
+        private readonly PuttyV3Encryption _puttyV3Encryption;
 
-        public SshKeyEncryptionAes256(string passphrase)
+        public SshKeyEncryptionAes256(string passphrase, PuttyV3Encryption? puttyV3Encryption = null)
         {
             _passphrase = passphrase;
             _passPhraseBytes = Encoding.ASCII.GetBytes(passphrase);
             _salt = new byte[SaltLen];
+            _puttyV3Encryption = puttyV3Encryption ?? new PuttyV3Encryption();
         }
 
-        public SshKeyEncryptionAes256(string passphrase, Aes256Mode mode) : this(passphrase)
+        public SshKeyEncryptionAes256(string passphrase, Aes256Mode mode, PuttyV3Encryption? puttyV3Encryption = null)
+         : this(passphrase, puttyV3Encryption)
         {
             _mode = mode;
         }
@@ -84,7 +89,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return Encrypt(buffer);
         }
 
-        public byte[] PuttyEncrypt(byte[] data)
+        public byte[] PuttyV2Encrypt(byte[] data)
         {
             using var sha1 = SHA1.Create();
 
@@ -119,11 +124,62 @@ namespace SshNet.Keygen.SshKeyEncryption
             return cipher.Encrypt(data);
         }
 
-        public byte[] PuttyEncrypt(byte[] data, int offset, int length)
+        public byte[] PuttyV2Encrypt(byte[] data, int offset, int length)
         {
             var buffer = new byte[length];
             Array.Copy(data, offset, buffer, 0, length);
-            return PuttyEncrypt(buffer);
+            return PuttyV2Encrypt(buffer);
+        }
+
+        public PuttyV3Encryption PuttyV3Encrypt(byte[] data)
+        {
+            Argon2 argon2 = _puttyV3Encryption.KeyDerivation switch
+            {
+                ArgonKeyDerivation.Argon2d  => new Argon2d(_passPhraseBytes),
+                ArgonKeyDerivation.Argon2i => new Argon2i(_passPhraseBytes),
+                ArgonKeyDerivation.Argon2id => new Argon2id(_passPhraseBytes),
+                _ => throw new NotSupportedException($"Encryption Key Derivation {_puttyV3Encryption.KeyDerivation} is not supported.")
+            };
+
+            argon2.DegreeOfParallelism = _puttyV3Encryption.DegreeOfParallelism;
+            argon2.MemorySize = _puttyV3Encryption.MemorySize;
+            argon2.Iterations = _puttyV3Encryption.Iterations;
+
+            using var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(_salt);
+            argon2.Salt = _salt;
+            _puttyV3Encryption.Salt = _salt;
+
+            var cipherKeyComplete = argon2.GetBytes(80);
+            var cipherKey = new byte[32];
+            var crcIv = new byte[16];
+            var macKey = new byte[32];
+            Buffer.BlockCopy(cipherKeyComplete, 0, cipherKey, 0, cipherKey.Length);
+            Buffer.BlockCopy(cipherKeyComplete, 32, crcIv, 0, crcIv.Length);
+            Buffer.BlockCopy(cipherKeyComplete, 48, macKey, 0, macKey.Length);
+
+            AesCipher cipher;
+            switch(_mode)
+            {
+                case Aes256Mode.CTR:
+                    throw new NotSupportedException($"Unsupported AES Mode: {_mode}");
+                default:
+                    _mode = Aes256Mode.CBC;
+                    cipher = new AesCipher(cipherKey, crcIv, AesCipherMode.CBC);
+                    break;
+            }
+
+            _puttyV3Encryption.Result = cipher.Encrypt(data);
+            _puttyV3Encryption.MacKey = macKey;
+
+            return _puttyV3Encryption;
+        }
+
+        public PuttyV3Encryption PuttyV3Encrypt(byte[] data, int offset, int length)
+        {
+            var buffer = new byte[length];
+            Array.Copy(data, offset, buffer, 0, length);
+            return PuttyV3Encrypt(buffer);
         }
     }
 }

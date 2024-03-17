@@ -3,6 +3,7 @@
     public enum SshKeyFormat
     {
         OpenSSH,
-        PuTTY
+        PuTTYv2,
+        PuTTYv3,
     }
 }
