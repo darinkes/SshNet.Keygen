@@ -1,6 +1,6 @@
 SshNet.Keygen
 =============
-[SSH.NET](https://github.com/sshnet/SSH.NET) Extension to generate and export Authentication Keys in OpenSSH and PuTTY Format.
+[SSH.NET](https://github.com/sshnet/SSH.NET) Extension to generate and export Authentication Keys in OpenSSH and PuTTY v2 and v3 Format.
 
 [![License](https://img.shields.io/github/license/darinkes/SshNet.KeyGen)](https://github.com/darinkes/SshNet.KeyGen/blob/main/LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/SshNet.Keygen.svg?style=flat)](https://www.nuget.org/packages/SshNet.Keygen)
@@ -63,11 +63,11 @@ Console.WriteLine(client.RunCommand("hostname").Result);
 ```cs
 var keyInfo = new SshKeyGenerateInfo
 {
-    KeyFormat = SshKeyFormat.PuTTY
+    KeyFormat = SshKeyFormat.PuTTYv3
 };
 var key = SshKey.Generate("test.ppk", FileMode.Create, keyInfo);
 
-var publicKey = key.ToPublic();
+var publicKey = key.ToPublic(SshKeyFormat.OpenSSH);
 var fingerprint = key.Fingerprint();
 
 Console.WriteLine("Fingerprint: {0}", fingerprint);
@@ -100,17 +100,39 @@ client.Connect();
 Console.WriteLine(client.RunCommand("hostname").Result);
 ```
 
-### Generate an password protected RSA-2048 Key in Putty File, Show the Public Key and Connect with the Private Key
+### Generate an password protected RSA-2048 Key in Putty v2 File, Show the Public Key and Connect with the Private Key
 
 ```cs
 var keyInfo = new SshKeyGenerateInfo
 {
-    KeyFormat = SshKeyFormat.PuTTY,
+    KeyFormat = SshKeyFormat.PuTTYv2,
     Encryption = new SshKeyEncryptionAes256("12345")
 };
 var key = SshKey.Generate("test.ppk", FileMode.Create, keyInfo);
 
-var publicKey = key.ToPublic();
+var publicKey = key.ToPublic(SshKeyFormat.OpenSSH);
+var fingerprint = key.Fingerprint();
+
+Console.WriteLine("Fingerprint: {0}", fingerprint);
+Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
+Console.ReadLine();
+
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+Console.WriteLine(client.RunCommand("hostname").Result);
+```
+
+### Generate an password protected RSA-2048 Key in Putty v3 File with own Argon Options, Show the Public Key and Connect with the Private Key
+
+```cs
+var keyInfo = new SshKeyGenerateInfo
+{
+    KeyFormat = SshKeyFormat.PuTTYv3,
+    Encryption = new SshKeyEncryptionAes256("12345", new PuttyV3Encryption { KeyDerivation = ArgonKeyDerivation.Argon2d, Iterations = 64, DegreeOfParallelism = 44 })
+};
+var key = SshKey.Generate("test.ppk", FileMode.Create, keyInfo);
+
+var publicKey = key.ToPublic(SshKeyFormat.OpenSSH);
 var fingerprint = key.Fingerprint();
 
 Console.WriteLine("Fingerprint: {0}", fingerprint);
@@ -207,11 +229,13 @@ Console.WriteLine("Public Key: {0}", publicKey);
 ```cs
 var keyFile = new PrivateKeyFile("test.key");
 
-var privateKey = keyFile.ToOpenSshFormat(new SshKeyEncryptionAes256("12345"));
-var puttyKey = keyFile.ToPuttyFormat(new SshKeyEncryptionAes256("12345"));
+var privateKey = keyFile.ToOpenSshFormat("12345");
+var puttyKey = keyFile.ToPuttyFormat("12345");
 var publicKey =  keyFile.ToPublic();
+var puttyPublicKey =  keyFile.ToPuttyPublicFormat();
 
 Console.WriteLine("Private Key: {0}", privateKey);
 Console.WriteLine("Putty Private Key: {0}", puttyKey);
 Console.WriteLine("Public Key: {0}", publicKey);
+Console.WriteLine("Putty Public Key: {0}", puttyPublicKey);
 ```

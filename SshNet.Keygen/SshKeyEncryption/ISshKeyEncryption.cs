@@ -16,8 +16,12 @@
 
         public byte[] Encrypt(byte[] data, int offset, int length);
 
-        public byte[] PuttyEncrypt(byte[] data);
+        public byte[] PuttyV2Encrypt(byte[] data);
 
-        public byte[] PuttyEncrypt(byte[] data, int offset, int length);
+        public byte[] PuttyV2Encrypt(byte[] data, int offset, int length);
+
+        public PuttyV3Encryption PuttyV3Encrypt(byte[] data);
+
+        public PuttyV3Encryption PuttyV3Encrypt(byte[] data, int offset, int length);
     }
 }

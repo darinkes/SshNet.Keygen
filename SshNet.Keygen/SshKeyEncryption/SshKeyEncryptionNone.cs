@@ -26,14 +26,24 @@ namespace SshNet.Keygen.SshKeyEncryption
             return Encrypt(buffer);
         }
 
-        public byte[] PuttyEncrypt(byte[] data)
+        public byte[] PuttyV2Encrypt(byte[] data)
         {
             return Encrypt(data);
         }
 
-        public byte[] PuttyEncrypt(byte[] data, int offset, int length)
+        public byte[] PuttyV2Encrypt(byte[] data, int offset, int length)
         {
             return Encrypt(data, offset, length);
+        }
+
+        public PuttyV3Encryption PuttyV3Encrypt(byte[] data)
+        {
+            return new PuttyV3Encryption { Result = Encrypt(data) };
+        }
+
+        public PuttyV3Encryption PuttyV3Encrypt(byte[] data, int offset, int length)
+        {
+            return new PuttyV3Encryption { Result = Encrypt(data, offset, length) };
         }
     }
 }

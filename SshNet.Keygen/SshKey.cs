@@ -30,8 +30,9 @@ namespace SshNet.Keygen
                 case SshKeyFormat.OpenSSH:
                     writer.Write(key.ToOpenSshFormat(info.Encryption));
                     break;
-                case SshKeyFormat.PuTTY:
-                    writer.Write(key.ToPuttyFormat(info.Encryption));
+                case SshKeyFormat.PuTTYv2:
+                case SshKeyFormat.PuTTYv3:
+                    writer.Write(key.ToPuttyFormat(info.Encryption, info.KeyFormat));
                     break;
                 default:
                     throw new NotSupportedException($"Not supported Key Format {info.KeyFormat}");

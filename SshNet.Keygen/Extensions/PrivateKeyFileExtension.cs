@@ -25,7 +25,28 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToPublic(this IPrivateKeySource keyFile)
         {
-            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPublic();
+            var keyFormat = SshKeyGenerateInfo.DefaultSshKeyFormat;
+            if (keyFile is GeneratedPrivateKey generatedPrivateKey)
+                keyFormat = generatedPrivateKey.Info.KeyFormat;
+
+            return keyFile.ToPublic(keyFormat);
+        }
+
+        public static string ToPublic(this IPrivateKeySource keyFile, SshKeyFormat sshKeyFormat)
+        {
+            return sshKeyFormat is SshKeyFormat.PuTTYv2 or SshKeyFormat.PuTTYv3
+                ? keyFile.ToPuttyPublicFormat()
+                : ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPublic();
+        }
+
+        public static string ToOpenSshPublicFormat(this IPrivateKeySource keyFile)
+        {
+            return keyFile.ToPublic(SshKeyFormat.OpenSSH);
+        }
+
+        public static string ToPuttyPublicFormat(this IPrivateKeySource keyFile)
+        {
+            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyPublicFormat();
         }
 
         #endregion
@@ -38,7 +59,12 @@ namespace SshNet.Keygen.Extensions
             if (keyFile is GeneratedPrivateKey generatedPrivateKey)
                 encryption = generatedPrivateKey.Info.Encryption;
 
-            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToOpenSshFormat(encryption);
+            return keyFile.ToOpenSshFormat(encryption);
+        }
+
+        public static string ToOpenSshFormat(this IPrivateKeySource keyFile, string passphrase)
+        {
+            return keyFile.ToOpenSshFormat(new SshKeyEncryptionAes256(passphrase));
         }
 
         public static string ToOpenSshFormat(this IPrivateKeySource keyFile, ISshKeyEncryption encryption)
@@ -52,16 +78,43 @@ namespace SshNet.Keygen.Extensions
 
         public static string ToPuttyFormat(this IPrivateKeySource keyFile)
         {
+            var sshKeyFormat = SshKeyFormat.PuTTYv3;
+            if (keyFile is GeneratedPrivateKey generatedPrivateKey)
+            {
+                if (generatedPrivateKey.Info.KeyFormat is SshKeyFormat.PuTTYv2 or SshKeyFormat.PuTTYv3)
+                    sshKeyFormat = generatedPrivateKey.Info.KeyFormat;
+            }
+
+            return keyFile.ToPuttyFormat(sshKeyFormat);
+        }
+
+        public static string ToPuttyFormat(this IPrivateKeySource keyFile, string passphrase)
+        {
+            return keyFile.ToPuttyFormat(new SshKeyEncryptionAes256(passphrase), SshKeyFormat.PuTTYv3);
+        }
+
+        public static string ToPuttyFormat(this IPrivateKeySource keyFile, string passphrase, SshKeyFormat sshKeyFormat)
+        {
+            return keyFile.ToPuttyFormat(new SshKeyEncryptionAes256(passphrase), sshKeyFormat);
+        }
+
+        public static string ToPuttyFormat(this IPrivateKeySource keyFile, SshKeyFormat sshKeyFormat)
+        {
             var encryption = SshKeyGenerateInfo.DefaultSshKeyEncryption;
             if (keyFile is GeneratedPrivateKey generatedPrivateKey)
                 encryption = generatedPrivateKey.Info.Encryption;
 
-            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyFormat(encryption);
+            return keyFile.ToPuttyFormat(encryption, sshKeyFormat);
         }
 
         public static string ToPuttyFormat(this IPrivateKeySource keyFile, ISshKeyEncryption encryption)
         {
-            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyFormat(encryption);
+            return keyFile.ToPuttyFormat(encryption, SshKeyFormat.PuTTYv3);
+        }
+
+        public static string ToPuttyFormat(this IPrivateKeySource keyFile, ISshKeyEncryption encryption, SshKeyFormat sshKeyFormat)
+        {
+            return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyFormat(encryption, sshKeyFormat);
         }
 
         #endregion
