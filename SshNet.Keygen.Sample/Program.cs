@@ -20,7 +20,7 @@ namespace SshNet.Keygen.Sample
             var fingerprint = key.Fingerprint();
 
             Console.WriteLine("Fingerprint: {0}", fingerprint);
-            Console.WriteLine("Add this to your .ssh/authorized_keys of the SSH Server: {0}", publicKey);
+            Console.WriteLine("Add this to your .ssh/authorized_keys on the SSH Server: {0}", publicKey);
             Console.ReadLine();
 
             using var client = new SshClient("localhost", Environment.GetEnvironmentVariable("USER") ?? Environment.GetEnvironmentVariable("USERNAME"), key);

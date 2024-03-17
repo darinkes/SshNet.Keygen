@@ -202,3 +202,16 @@ var publicKey =  keyFile.ToPublic();
 Console.WriteLine("Private Key: {0}", privateKey);
 Console.WriteLine("Public Key: {0}", publicKey);
 ```
+
+### Export an existing Key from SSH.NET with Encryption
+```cs
+var keyFile = new PrivateKeyFile("test.key");
+
+var privateKey = keyFile.ToOpenSshFormat(new SshKeyEncryptionAes256("12345"));
+var puttyKey = keyFile.ToPuttyFormat(new SshKeyEncryptionAes256("12345"));
+var publicKey =  keyFile.ToPublic();
+
+Console.WriteLine("Private Key: {0}", privateKey);
+Console.WriteLine("Putty Private Key: {0}", puttyKey);
+Console.WriteLine("Public Key: {0}", publicKey);
+```
