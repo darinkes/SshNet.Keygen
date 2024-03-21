@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using SshNet.Keygen.SshKeyEncryption;
 
 namespace SshNet.Keygen
@@ -30,6 +31,14 @@ namespace SshNet.Keygen
         public int KeyLength { get; set; }
 
         public SshKeyType KeyType { get; set; }
+
+        public RSA? Rsa { get; set; }
+
+#if NETSTANDARD
+        public ECDsa? Ecdsa { get; set; }
+#else
+        public ECDsaCng? Ecdsa { get; set; }
+#endif
 
         public SshKeyGenerateInfo(SshKeyType keyType = DefaultSshKeyType)
         {

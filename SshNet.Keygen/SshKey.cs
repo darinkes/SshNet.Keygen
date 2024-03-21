@@ -60,8 +60,16 @@ namespace SshNet.Keygen
                 }
                 case SshKeyType.RSA:
                 {
-                    using var rsa = CreateRSA(info.KeyLength);
-                    var rsaParameters = rsa.ExportParameters(true);
+                    RSAParameters rsaParameters;
+                    if (info.Rsa is not null)
+                    {
+                        rsaParameters = info.Rsa.ExportParameters(true);
+                    }
+                    else
+                    {
+                        using var rsa = CreateRSA(info.KeyLength);
+                        rsaParameters = rsa.ExportParameters(true);
+                    }
 
                     key = new RsaKey(
                         rsaParameters.Modulus.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
@@ -75,28 +83,49 @@ namespace SshNet.Keygen
                 }
                 case SshKeyType.ECDSA:
                 {
+                    var dispose = false;
 #if NETSTANDARD
-                    var curve = info.KeyLength switch
+                    ECDsa? ecdsa;
+                    if (info.Ecdsa is not null)
                     {
-                        256 => ECCurve.CreateFromFriendlyName("nistp256"),
-                        384 => ECCurve.CreateFromFriendlyName("nistp384"),
-                        521 => ECCurve.CreateFromFriendlyName("nistp521"),
-                        _ => throw new CryptographicException("Unsupported KeyLength")
-                    };
+                        ecdsa = info.Ecdsa;
+                    }
+                    else
+                    {
+                        var curve = info.KeyLength switch
+                        {
+                            256 => ECCurve.CreateFromFriendlyName("nistp256"),
+                            384 => ECCurve.CreateFromFriendlyName("nistp384"),
+                            521 => ECCurve.CreateFromFriendlyName("nistp521"),
+                            _ => throw new CryptographicException("Unsupported KeyLength")
+                        };
 
-                    using var ecdsa = ECDsa.Create();
-                    if (ecdsa is null)
-                        throw new CryptographicException("Unable to generate ECDSA");
-                    ecdsa.GenerateKey(curve);
-                    var ecdsaParameters = ecdsa.ExportParameters(true);
+                        ecdsa = ECDsa.Create();
+                        if (ecdsa is null)
+                            throw new CryptographicException("Unable to generate ECDSA");
+                        dispose = true;
+                        ecdsa.GenerateKey(curve);
+                    }
+
+                    var ecParameters = ecdsa.ExportParameters(true);
 
                     key = new EcdsaKey(
                         ecdsa.EcCurveNameSshCompat(),
-                        ecdsaParameters.UncompressedCoords(),
-                        ecdsaParameters.D
+                        ecParameters.UncompressedCoords(),
+                        ecParameters.D
                     );
 #else
-                    using var ecdsa = new ECDsaCng(info.KeyLength);
+                    ECDsaCng ecdsa;
+                    if (info.Ecdsa is not null)
+                    {
+                        ecdsa = info.Ecdsa;
+                    }
+                    else
+                    {
+                        ecdsa = new ECDsaCng(info.KeyLength);
+                        dispose = true;
+                    }
+
                     var keyBlob = ecdsa.Key.Export(CngKeyBlobFormat.EccPrivateBlob);
                     using var stream = new MemoryStream(keyBlob);
                     using var reader = new BinaryReader(stream);
@@ -112,6 +141,8 @@ namespace SshNet.Keygen
                         d
                     );
 #endif
+                    if (dispose)
+                        ecdsa.Dispose();
                     break;
                 }
                 default:

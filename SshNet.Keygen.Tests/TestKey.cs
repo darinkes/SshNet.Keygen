@@ -265,5 +265,51 @@ namespace SshNet.Keygen.Tests
             TestFormatKey<ED25519Key>("ED25519", 256);
             TestFormatKey<ED25519Key>("ED25519", 256, "12345");
         }
+
+        [Test]
+        public void TestOwnRSA()
+        {
+            RSA? rsa;
+            int keySize = 2048;
+#if NET8_0_OR_GREATER
+            rsa = RSA.Create();
+            if (rsa is RSACryptoServiceProvider)
+            {
+                rsa.Dispose();
+                rsa = new RSACng(keySize);
+            }
+            rsa.KeySize = keySize;
+#else
+            rsa = new RSACryptoServiceProvider(keySize);
+#endif
+            var keyInfo = new SshKeyGenerateInfo
+            {
+                Rsa = rsa
+            };
+            var keyFile = SshKey.Generate(keyInfo);
+            ClassicAssert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
+            ClassicAssert.AreEqual(keySize, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
+        }
+
+        [Test]
+        public void TestOwnEcdsa()
+        {
+            var keyInfo = new SshKeyGenerateInfo
+            {
+                KeyType = SshKeyType.ECDSA
+            };
+
+#if NET8_0_OR_GREATER
+            var curve = ECCurve.CreateFromFriendlyName("nistp256");
+            var ecdsa = ECDsa.Create();
+            ecdsa.GenerateKey(curve);
+            keyInfo.Ecdsa = ecdsa;
+#else
+            keyInfo.Ecdsa = new ECDsaCng(256);
+#endif
+            var keyFile = SshKey.Generate(keyInfo);
+            ClassicAssert.IsInstanceOf<EcdsaKey>(((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key);
+            ClassicAssert.AreEqual(256, ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.KeyLength);
+        }
     }
 }
