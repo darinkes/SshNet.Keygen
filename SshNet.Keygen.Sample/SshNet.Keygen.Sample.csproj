@@ -8,7 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SshNet.Keygen\SshNet.Keygen.csproj" />
+        <PackageReference Include="SSH.NET" Version="2024.0.0" />
+        <ProjectReference Include="..\SshNet.Keygen\SshNet.Keygen.csproj" />
     </ItemGroup>
 
 </Project>
