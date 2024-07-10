@@ -209,6 +209,13 @@ namespace SshNet.Keygen.Tests
             return reader.ReadToEnd();
         }
 
+        private string GetSignatureResource(string keyname)
+        {
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.Keygen.Tests.TestSignatures.{keyname}");
+            using var reader = new StreamReader(resourceStream, Encoding.ASCII);
+            return reader.ReadToEnd().Replace(Environment.NewLine, "\n");
+        }
+
         private void TestFormatKey<T>(string keyname, int keyLength, string passphrase = null)
         {
             if (!string.IsNullOrEmpty(passphrase))
@@ -301,6 +308,47 @@ namespace SshNet.Keygen.Tests
         {
             TestFormatKey<ED25519Key>("ED25519", 256);
             TestFormatKey<ED25519Key>("ED25519", 256, "12345");
+        }
+
+        [Test]
+        public void TestVerify()
+        {
+            List<string> keys = ["RSA2048", "RSA3072", "RSA4096", "RSA8192", "ECDSA256", "ECDSA384", "ECDSA521", "ED25519"];
+            var data = Encoding.UTF8.GetBytes(GetSignatureResource("file.txt"));
+
+            foreach (var key in keys)
+            {
+                TestContext.WriteLine($"Testing Key {key}");
+                var signature = GetSignatureResource($"file.txt.{key}.sig");
+                ClassicAssert.IsTrue(SshSignature.Verify(data, signature));
+            }
+        }
+
+        [Test]
+        public void TestSign()
+        {
+            List<string> keys = ["RSA2048", "RSA3072", "RSA4096", "RSA8192", "ECDSA256", "ECDSA384", "ECDSA521", "ED25519"];
+            var data = Encoding.UTF8.GetBytes(GetSignatureResource("file.txt"));
+
+            foreach (var key in keys)
+            {
+                TestContext.WriteLine($"Testing Key {key}");
+                var expectedSignature = GetSignatureResource($"file.txt.{key}.sig");
+                var keyData = GetKey(key);
+                var keyFile = new PrivateKeyFile(keyData.ToStream());
+                var signature = keyFile.Signature(data);
+                ClassicAssert.IsTrue(SshSignature.Verify(data, signature));
+
+                // ECDSA Signatures differ on each run
+                if (!key.StartsWith("ECDSA"))
+                    ClassicAssert.AreEqual(expectedSignature, signature);
+
+                var file = $"file-{key}.txt";
+                File.WriteAllText(file, "bla");
+                keyFile.SignatureFile(file);
+                ClassicAssert.IsTrue(SshSignature.VerifyFile(file, $"{file}.sig"));
+
+            }
         }
     }
 }
