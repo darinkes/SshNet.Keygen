@@ -1,6 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
 using Renci.SshNet;
 using Renci.SshNet.Security;
+using Renci.SshNet.Security.Cryptography;
 using SshNet.Keygen.SshKeyEncryption;
 
 namespace SshNet.Keygen.Extensions
@@ -116,6 +119,32 @@ namespace SshNet.Keygen.Extensions
         {
             return ((KeyHostAlgorithm) keyFile.HostKeyAlgorithms.First()).Key.ToPuttyFormat(encryption, sshKeyFormat);
         }
+
+        #endregion
+
+        #region Sign
+
+        public static string Signature(this IPrivateKeySource keyFile, byte[] data)
+        {
+            return GetSignKeyHostAlgorithm(keyFile).Signature(data);
+        }
+
+        public static void SignatureFile(this IPrivateKeySource keyFile, string path)
+        {
+            GetSignKeyHostAlgorithm(keyFile).SignatureFile(path);
+        }
+
+        private static KeyHostAlgorithm GetSignKeyHostAlgorithm(this IPrivateKeySource keyFile)
+        {
+            var keyHostAlgorithm = (KeyHostAlgorithm)keyFile.HostKeyAlgorithms.First();
+            if (keyHostAlgorithm.Key is RsaKey rsaKey)
+            {
+                keyHostAlgorithm = new KeyHostAlgorithm("rsa-sha2-512", keyHostAlgorithm.Key, new RsaDigitalSignature(rsaKey, HashAlgorithmName.SHA512));
+            }
+
+            return keyHostAlgorithm;
+        }
+
 
         #endregion
     }

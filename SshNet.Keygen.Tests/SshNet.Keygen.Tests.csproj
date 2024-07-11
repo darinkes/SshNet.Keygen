@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net48;net8.0</TargetFrameworks>
         <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net8.0</TargetFramework>
-        <LangVersion>9</LangVersion>
+        <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <EmbeddedResource Include="TestKeys\*" />
+      <EmbeddedResource Include="TestSignatures\*" />
     </ItemGroup>
 
 </Project>
