@@ -10,9 +10,6 @@ SshNet.Keygen
 ![.NET-Windows](https://github.com/darinkes/SshNet.Keygen/workflows/.NET-Windows/badge.svg)
 ![NuGet](https://github.com/darinkes/SshNet.Keygen/workflows/NuGet/badge.svg)
 
-## Status
-WIP
-
 ## .NET Frameworks
 
 * .NET 4.8
