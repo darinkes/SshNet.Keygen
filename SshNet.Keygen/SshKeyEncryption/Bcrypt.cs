@@ -1,7 +1,7 @@
-﻿// 
+﻿//
 // Copyright (c) 2006 Damien Miller <djm@mindrot.org>
 // Copyright (c) 2010 Ryan D. Emerle
-// 
+//
 // Permission to use, copy, modify, and distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
@@ -18,7 +18,6 @@ using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using Renci.SshNet.Abstractions;
 
 namespace SshNet.Keygen.SshKeyEncryption
 {
@@ -846,7 +845,7 @@ namespace SshNet.Keygen.SshKeyEncryption
         }
 
         /// <summary>
-        /// Applies the Bcrypt kdf to derive a key and iv from the passphrase, 
+        /// Applies the Bcrypt kdf to derive a key and iv from the passphrase,
         /// the key/iv are returned in the output variable.
         /// Ported from the SSHJ library. https://github.com/hierynomus/sshj
         /// </summary>
@@ -856,7 +855,7 @@ namespace SshNet.Keygen.SshKeyEncryption
         /// <param name="output"></param>
         public void Pbkdf(byte[] password, byte[] salt, int rounds, byte[] output)
         {
-            using (var sha512 = new Security.Cryptography.SHA512())
+            using (var sha512 = SHA512.Create())
             {
                 int nblocks = (output.Length + 31) / 32;
                 byte[] hpass = sha512.ComputeHash(password);

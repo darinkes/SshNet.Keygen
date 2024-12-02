@@ -5,7 +5,7 @@
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>SshNet.Keygen</PackageId>
-        <Version>2024.0.0.2</Version>
+        <Version>2024.2.0.0</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <PackageTags>ssh;scp;sftp</PackageTags>
         <Description>SSH.NET Extension to generate and export Authentication Keys in OpenSSH and PuTTY Format.</Description>
@@ -23,8 +23,7 @@
             <Link>Chaos.Nacl\%(RecursiveDir)%(Filename)%(Extension)</Link>
         </Compile>
 
-        <PackageReference Include="SSH.NET" Version="[2023.0.1,)" />
-        <PackageReference Include="SshNet.Security.Cryptography" Version="[1.3.0]" />
+        <PackageReference Include="SSH.NET" Version="[2024.2.0,)" />
         <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.0"/>
     </ItemGroup>
 
