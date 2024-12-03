@@ -109,7 +109,10 @@ namespace SshNet.Keygen.Extensions
                 case "ssh-ed25519":
                     var ed25519 = (ED25519Key)key;
                     privWriter.EncodeBinary(ed25519.PublicKey);
-                    privWriter.EncodeBinary(ed25519.PrivateKey);
+                    var privateKey = new byte[ed25519.PrivateKey.Length + ed25519.PublicKey.Length];
+                    Buffer.BlockCopy(ed25519.PrivateKey, 0, privateKey, 0, ed25519.PrivateKey.Length);
+                    Buffer.BlockCopy(ed25519.PublicKey, 0, privateKey, ed25519.PrivateKey.Length, ed25519.PublicKey.Length);
+                    privWriter.EncodeBinary(privateKey);
                     break;
                 case "ssh-rsa":
                     var rsa = (RsaKey)key;
@@ -200,7 +203,10 @@ namespace SshNet.Keygen.Extensions
             {
                 case "ssh-ed25519":
                     var ed25519 = (ED25519Key)key;
-                    privWriter.EncodeBinary(ed25519.PrivateKey);
+                    var privateKey = new byte[ed25519.PrivateKey.Length + ed25519.PublicKey.Length];
+                    Buffer.BlockCopy(ed25519.PrivateKey, 0, privateKey, 0, ed25519.PrivateKey.Length);
+                    Buffer.BlockCopy(ed25519.PublicKey, 0, privateKey, ed25519.PrivateKey.Length, ed25519.PublicKey.Length);
+                    privWriter.EncodeBinary(privateKey);
                     break;
                 case "ssh-rsa":
                     var rsa = (RsaKey)key;
