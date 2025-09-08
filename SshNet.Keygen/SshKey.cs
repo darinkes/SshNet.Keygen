@@ -126,6 +126,7 @@ namespace SshNet.Keygen
         private static RSA CreateRSA(int keySize)
         {
 #if NET40
+
             var rsa = new RSACryptoServiceProvider(keySize);
             var keySizes = rsa.LegalKeySizes[0];
             if (keySize < keySizes.MinSize || keySize > keySizes.MaxSize)
@@ -133,7 +134,15 @@ namespace SshNet.Keygen
                 throw new CryptographicException($"Illegal Key Size: {keySize}");
             }
             return rsa;
-#else
+
+#elif NET8_0_OR_GREATER
+
+            var rsa = RSA.Create();
+            rsa.KeySize = keySize;
+            return rsa;
+
+#else //.netstandard 2.0
+
             var rsa = RSA.Create();
 
             if (rsa is RSACryptoServiceProvider)
@@ -144,6 +153,7 @@ namespace SshNet.Keygen
 
             rsa.KeySize = keySize;
             return rsa;
+
 #endif
         }
     }

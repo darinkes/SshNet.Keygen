@@ -5,8 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Konscious.Security.Cryptography;
 using Renci.SshNet.Security.Cryptography.Ciphers;
-using Renci.SshNet.Security.Cryptography.Ciphers.Modes;
-using Renci.SshNet.Security.Cryptography.Ciphers.Paddings;
 using SshNet.Keygen.Extensions;
 
 namespace SshNet.Keygen.SshKeyEncryption
