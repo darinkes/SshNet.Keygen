@@ -73,7 +73,7 @@ namespace SshNet.Keygen.SshKeyEncryption
         {
             using var stream = new MemoryStream();
             using var writer = new BinaryWriter(stream);
-            using var rng = new RNGCryptoServiceProvider();
+            using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(_salt);
             writer.EncodeBinary(_salt);
             writer.EncodeUInt(Rounds);
@@ -172,7 +172,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             argon2.MemorySize = _puttyV3Encryption.MemorySize;
             argon2.Iterations = _puttyV3Encryption.Iterations;
 
-            using var rng = new RNGCryptoServiceProvider();
+            using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(_salt);
             argon2.Salt = _salt;
             _puttyV3Encryption.Salt = _salt;

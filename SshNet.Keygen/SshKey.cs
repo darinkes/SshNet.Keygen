@@ -68,7 +68,7 @@ namespace SshNet.Keygen
             {
                 case SshKeyType.ED25519:
                 {
-                    using var rngCsp = new RNGCryptoServiceProvider();
+                    using var rngCsp = RandomNumberGenerator.Create();
                     var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
                     rngCsp.GetBytes(seed);
                     Ed25519.KeyPairFromSeed(out _, out var edKey, seed);
