@@ -103,7 +103,7 @@ namespace SshNet.Keygen.Extensions
             var rnd = new Random().Next(0, int.MaxValue);
             privWriter.EncodeInt(rnd); // check-int1
             privWriter.EncodeInt(rnd); // check-int2
-            privWriter.EncodeBinary(key.ToString());
+            privWriter.EncodeBinary(key.ToString()!);
             switch (key.ToString())
             {
                 case "ssh-ed25519":
@@ -237,7 +237,7 @@ namespace SshNet.Keygen.Extensions
             // MAC
             using var macStream = new MemoryStream();
             using var macWriter = new BinaryWriter(macStream);
-            macWriter.EncodeBinary(key.ToString());
+            macWriter.EncodeBinary(key.ToString()!);
             macWriter.EncodeBinary(encryption.CipherName);
             macWriter.EncodeBinary(key.Comment);
             macWriter.EncodeBinary(pubStream);
@@ -261,7 +261,7 @@ namespace SshNet.Keygen.Extensions
             else
             {
                 puttyV3Encryption = encryption.PuttyV3Encrypt(privStream.ToArray());
-                privateBase64String = Convert.ToBase64String(puttyV3Encryption.Result).FormatNewLines(64);
+                privateBase64String = Convert.ToBase64String(puttyV3Encryption.Result!).FormatNewLines(64);
 
                 using var hmac = new HMACSHA256(puttyV3Encryption.MacKey);
                 macHash = hmac.ComputeHash(hashData);
@@ -305,7 +305,7 @@ namespace SshNet.Keygen.Extensions
 
         private static void PublicKeyData(this Key key, BinaryWriter writer)
         {
-            writer.EncodeBinary(key.ToString());
+            writer.EncodeBinary(key.ToString()!);
             switch (key.ToString())
             {
                 case "ssh-ed25519":

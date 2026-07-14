@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net48;netstandard2.0</TargetFrameworks>
-        <TargetFramework Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFramework>
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net48;netstandard2.0;net8.0</TargetFrameworks>
+        <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0;net8.0</TargetFrameworks>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>SshNet.Keygen</PackageId>
@@ -17,6 +17,11 @@
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <Authors>darinkes</Authors>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    </PropertyGroup>
+
+    <!-- net8.0 has the netstandard APIs; reuse the portable (non-CNG) code paths gated on NETSTANDARD -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Label="SourceLink and symbols">
@@ -43,7 +48,7 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
     </ItemGroup>
 
-    <ItemGroup Condition=" '$(TargetFramework)' != 'net48' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
         <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
         <!-- force the vulnerable transitive up to a patched version (GHSA-447r-wph3-92pm) -->
         <PackageReference Include="System.Formats.Asn1" Version="8.0.2" />
