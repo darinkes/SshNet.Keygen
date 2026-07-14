@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SshNet.Keygen.Sample/SshNet.Keygen.Sample.csproj" />
+  <Project Path="SshNet.Keygen.Tests/SshNet.Keygen.Tests.csproj" />
+  <Project Path="SshNet.Keygen/SshNet.Keygen.csproj" />
+</Solution>
