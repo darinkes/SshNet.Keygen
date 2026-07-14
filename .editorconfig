@@ -1,0 +1,9 @@
+root = true
+
+# Undocumented public members are an error, so the public API stays documented.
+[*.cs]
+dotnet_diagnostic.CS1591.severity = error
+
+# Vendored submodule — not part of our documented public API.
+[Chaos.NaCl/**/*.cs]
+dotnet_diagnostic.CS1591.severity = none

@@ -7,6 +7,9 @@ using SshNet.Keygen.SshKeyEncryption;
 
 namespace SshNet.Keygen.Extensions
 {
+    /// <summary>
+    /// Internal formatting helpers for SSH.NET <c>Key</c> instances.
+    /// </summary>
     public static class KeyExtension
     {
         #region Fingerprint

@@ -11,18 +11,32 @@ using SshNet.Keygen.Extensions;
 
 namespace SshNet.Keygen.SshKeyEncryption
 {
+    /// <summary>
+    /// The AES-256 cipher mode used to encrypt a key.
+    /// </summary>
     public enum Aes256Mode
     {
+        /// <summary>Cipher Block Chaining.</summary>
         CBC,
+
+        /// <summary>Counter mode.</summary>
         CTR
     }
 
+    /// <summary>
+    /// Encrypts a key with AES-256 (bcrypt KDF for OpenSSH, Argon2 for PuTTY v3).
+    /// </summary>
     public class SshKeyEncryptionAes256 : ISshKeyEncryption
     {
+        /// <inheritdoc />
         public string CipherName => $"aes256-{_mode.ToString().ToLower()}";
+        /// <inheritdoc />
         public string KdfName => "bcrypt";
+        /// <inheritdoc />
         public int BlockSize => 16;
+        /// <inheritdoc />
         public string Passphrase => _passphrase;
+        /// <summary>The Argon2 parameters applied when exporting to the PuTTY v3 format.</summary>
         public PuttyV3Encryption PuttyV3Encryption => _puttyV3Encryption;
 
         private const int SaltLen = 16;
@@ -33,6 +47,9 @@ namespace SshNet.Keygen.SshKeyEncryption
         private readonly string _passphrase;
         private readonly PuttyV3Encryption _puttyV3Encryption;
 
+        /// <summary>Initializes AES-256 encryption with the given passphrase.</summary>
+        /// <param name="passphrase">The passphrase protecting the key.</param>
+        /// <param name="puttyV3Encryption">Optional Argon2 parameters for PuTTY v3 export; defaults are used when null.</param>
         public SshKeyEncryptionAes256(string passphrase, PuttyV3Encryption? puttyV3Encryption = null)
         {
             _passphrase = passphrase;
@@ -41,12 +58,17 @@ namespace SshNet.Keygen.SshKeyEncryption
             _puttyV3Encryption = puttyV3Encryption ?? new PuttyV3Encryption();
         }
 
+        /// <summary>Initializes AES-256 encryption with the given passphrase and cipher mode.</summary>
+        /// <param name="passphrase">The passphrase protecting the key.</param>
+        /// <param name="mode">The AES cipher mode.</param>
+        /// <param name="puttyV3Encryption">Optional Argon2 parameters for PuTTY v3 export; defaults are used when null.</param>
         public SshKeyEncryptionAes256(string passphrase, Aes256Mode mode, PuttyV3Encryption? puttyV3Encryption = null)
          : this(passphrase, puttyV3Encryption)
         {
             _mode = mode;
         }
 
+        /// <inheritdoc />
         public byte[] KdfOptions()
         {
             using var stream = new MemoryStream();
@@ -58,6 +80,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return stream.ToArray();
         }
 
+        /// <inheritdoc />
         public byte[] Encrypt(byte[] data)
         {
             var keyiv = new byte[48];
@@ -82,6 +105,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return cipher.Encrypt(data);
         }
 
+        /// <inheritdoc />
         public byte[] Encrypt(byte[] data, int offset, int length)
         {
             var buffer = new byte[length];
@@ -89,6 +113,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return Encrypt(buffer);
         }
 
+        /// <inheritdoc />
         public byte[] PuttyV2Encrypt(byte[] data)
         {
             using var sha1 = SHA1.Create();
@@ -124,6 +149,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return cipher.Encrypt(data);
         }
 
+        /// <inheritdoc />
         public byte[] PuttyV2Encrypt(byte[] data, int offset, int length)
         {
             var buffer = new byte[length];
@@ -131,6 +157,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return PuttyV2Encrypt(buffer);
         }
 
+        /// <inheritdoc />
         public PuttyV3Encryption PuttyV3Encrypt(byte[] data)
         {
             Argon2 argon2 = _puttyV3Encryption.KeyDerivation switch
@@ -175,6 +202,7 @@ namespace SshNet.Keygen.SshKeyEncryption
             return _puttyV3Encryption;
         }
 
+        /// <inheritdoc />
         public PuttyV3Encryption PuttyV3Encrypt(byte[] data, int offset, int length)
         {
             var buffer = new byte[length];
