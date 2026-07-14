@@ -45,5 +45,7 @@
 
     <ItemGroup Condition=" '$(TargetFramework)' != 'net48' ">
         <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
+        <!-- force the vulnerable transitive up to a patched version (GHSA-447r-wph3-92pm) -->
+        <PackageReference Include="System.Formats.Asn1" Version="8.0.2" />
     </ItemGroup>
 </Project>
