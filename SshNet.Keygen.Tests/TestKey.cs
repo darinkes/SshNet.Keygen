@@ -24,13 +24,13 @@ namespace SshNet.Keygen.Tests
                 KeyType = SshKeyType.ECDSA,
                 KeyLength = 1
             };
-            Assert.Throws<CryptographicException>((TestDelegate)(() => SshKey.Generate(keyInfo)));
+            Assert.Throws<CryptographicException>((Action)(() => SshKey.Generate(keyInfo)));
 
             keyInfo.KeyType = SshKeyType.RSA;
-            Assert.Throws<CryptographicException>((TestDelegate)(() => SshKey.Generate(keyInfo)));
+            Assert.Throws<CryptographicException>((Action)(() => SshKey.Generate(keyInfo)));
 
             var key = SshKey.Generate();
-            Assert.Throws<NotSupportedException>((TestDelegate)(() => key.ToPuttyFormat(SshKeyFormat.OpenSSH)));
+            Assert.Throws<NotSupportedException>((Action)(() => key.ToPuttyFormat(SshKeyFormat.OpenSSH)));
         }
 
         [Test]
@@ -101,7 +101,7 @@ namespace SshNet.Keygen.Tests
                                 switch (sshKeyEncryption.CipherName)
                                 {
                                     case "aes256-ctr":
-                                        Assert.Throws<NotSupportedException>((TestDelegate)(() => SshKey.Generate(puttyFile, FileMode.Create, keyInfo)));
+                                        Assert.Throws<NotSupportedException>((Action)(() => SshKey.Generate(puttyFile, FileMode.Create, keyInfo)));
                                         break;
                                     default:
                                         File.Delete(puttyFile);
@@ -241,7 +241,7 @@ namespace SshNet.Keygen.Tests
             var export = string.IsNullOrEmpty(passphrase)
                 ? keyFile.ToOpenSshFormat()
                 : keyFile.ToOpenSshFormat(new SshKeyEncryptionAes256(passphrase));
-            Assert.DoesNotThrow((TestDelegate)(() =>
+            Assert.DoesNotThrow((Action)(() =>
             {
                 _ = new PrivateKeyFile(export.ToStream(), passphrase);
             }));
