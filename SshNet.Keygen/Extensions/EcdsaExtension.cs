@@ -29,8 +29,8 @@ namespace SshNet.Keygen.Extensions
 
         public static byte[] UncompressedCoords(this ECParameters ecdsaParameters)
         {
-            var qx = ecdsaParameters.Q.X;
-            var qy = ecdsaParameters.Q.Y;
+            var qx = ecdsaParameters.Q.X!;
+            var qy = ecdsaParameters.Q.Y!;
             return UncompressedCoords(qx, qy);
         }
 #else

@@ -65,12 +65,12 @@ namespace SshNet.Keygen
                     var rsaParameters = rsa.ExportParameters(true);
 
                     key = new RsaKey(
-                        rsaParameters.Modulus.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.Exponent.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.D.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.P.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.Q.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.InverseQ.ToBigInteger2().ToByteArray().Reverse().ToBigInteger()
+                        rsaParameters.Modulus!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.Exponent!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.D!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.P!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.Q!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                        rsaParameters.InverseQ!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger()
                     );
                     break;
                 }
@@ -94,7 +94,7 @@ namespace SshNet.Keygen
                     key = new EcdsaKey(
                         ecdsa.EcCurveNameSshCompat(),
                         ecdsaParameters.UncompressedCoords(),
-                        ecdsaParameters.D
+                        ecdsaParameters.D!
                     );
 #else
                     using var ecdsa = new ECDsaCng(info.KeyLength);
@@ -132,6 +132,10 @@ namespace SshNet.Keygen
             {
                 throw new CryptographicException($"Illegal Key Size: {keySize}");
             }
+            return rsa;
+#elif NET8_0_OR_GREATER
+            var rsa = RSA.Create();
+            rsa.KeySize = keySize;
             return rsa;
 #else
             var rsa = RSA.Create();
