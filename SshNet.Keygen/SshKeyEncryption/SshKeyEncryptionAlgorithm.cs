@@ -1,14 +1,26 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 
 namespace SshNet.Keygen.SshKeyEncryption
 {
+    /// <summary>
+    /// The hash algorithm used to compute a key fingerprint.
+    /// </summary>
     public enum SshKeyHashAlgorithmName
     {
+        /// <summary>MD5.</summary>
         MD5,
+
+        /// <summary>SHA-1.</summary>
         SHA1,
+
+        /// <summary>SHA-256.</summary>
         SHA256,
+
+        /// <summary>SHA-384.</summary>
         SHA384,
+
+        /// <summary>SHA-512.</summary>
         SHA512
     }
 

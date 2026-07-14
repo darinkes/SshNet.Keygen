@@ -7,19 +7,32 @@ using SshNet.Keygen.Extensions;
 
 namespace SshNet.Keygen
 {
+    /// <summary>
+    /// Generates SSH authentication keys (RSA, ECDSA, Ed25519).
+    /// </summary>
     public static class SshKey
     {
+        /// <summary>Generates a default key and writes it to <paramref name="path"/>.</summary>
+        /// <param name="path">Destination file path.</param>
+        /// <param name="mode">How the destination file is opened.</param>
         public static GeneratedPrivateKey Generate(string path, FileMode mode)
         {
             return Generate(path, mode, new SshKeyGenerateInfo());
         }
 
+        /// <summary>Generates a key per <paramref name="info"/> and writes it to <paramref name="path"/>.</summary>
+        /// <param name="path">Destination file path.</param>
+        /// <param name="mode">How the destination file is opened.</param>
+        /// <param name="info">Generation and export options.</param>
         public static GeneratedPrivateKey Generate(string path, FileMode mode, SshKeyGenerateInfo info)
         {
             using var file = File.Open(path, mode, FileAccess.Write);
             return Generate(file, info);
         }
 
+        /// <summary>Generates a key per <paramref name="info"/> and writes it to <paramref name="stream"/>.</summary>
+        /// <param name="stream">Destination stream.</param>
+        /// <param name="info">Generation and export options.</param>
         public static GeneratedPrivateKey Generate(Stream stream, SshKeyGenerateInfo info)
         {
             using var writer = new StreamWriter(stream);
@@ -40,11 +53,14 @@ namespace SshNet.Keygen
             return key;
         }
 
+        /// <summary>Generates a default key (2048-bit RSA) in memory.</summary>
         public static GeneratedPrivateKey Generate()
         {
             return Generate(new SshKeyGenerateInfo());
         }
 
+        /// <summary>Generates a key per <paramref name="info"/> in memory.</summary>
+        /// <param name="info">Generation and export options.</param>
         public static GeneratedPrivateKey Generate(SshKeyGenerateInfo info)
         {
             Key key;
