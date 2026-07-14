@@ -5,7 +5,6 @@ namespace SshNet.Keygen
     /// </summary>
     public enum SshKeyType
     {
-        /// <summary>RSA key.</summary>
         RSA,
 
         /// <summary>ECDSA (NIST curve) key.</summary>
