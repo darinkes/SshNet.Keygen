@@ -132,7 +132,7 @@ namespace SshNet.Keygen.Extensions
                     var publicKey = ecdsa.Public;
                     privWriter.EncodeBinary(publicKey[0]);
                     privWriter.EncodeBinary(publicKey[1]);
-                    privWriter.EncodeBinary(ecdsa.PrivateKey.ToBigInteger2());
+                    privWriter.EncodeBinary(ecdsa.PrivateKey!.ToBigInteger2());
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
@@ -221,7 +221,7 @@ namespace SshNet.Keygen.Extensions
                     // Fallthrough
                 case "ecdsa-sha2-nistp521":
                     var ecdsa = (EcdsaKey)key;
-                    privWriter.EncodeBinary(ecdsa.PrivateKey.ToBigInteger2());
+                    privWriter.EncodeBinary(ecdsa.PrivateKey!.ToBigInteger2());
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
