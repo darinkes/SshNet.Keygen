@@ -57,18 +57,20 @@ namespace SshNet.Keygen
             Comment = DefaultSshKeyComment;
             KeyFormat = DefaultSshKeyFormat;
             KeyType = keyType;
-            switch (KeyType)
+            KeyLength = DefaultKeyLength(keyType);
+        }
+
+        /// <summary>The default key length, in bits, for the given <paramref name="keyType"/>.</summary>
+        /// <param name="keyType">The key algorithm.</param>
+        public static int DefaultKeyLength(SshKeyType keyType)
+        {
+            return keyType switch
             {
-                case SshKeyType.RSA:
-                    KeyLength = DefaultRsaSshKeyLength;
-                    break;
-                case SshKeyType.ECDSA:
-                    KeyLength = DefaultEcdsaSshKeyLength;
-                    break;
-                case SshKeyType.ED25519:
-                    KeyLength = DefaultEd25519SshKeyLength;
-                    break;
-            }
+                SshKeyType.RSA => DefaultRsaSshKeyLength,
+                SshKeyType.ECDSA => DefaultEcdsaSshKeyLength,
+                SshKeyType.ED25519 => DefaultEd25519SshKeyLength,
+                _ => DefaultRsaSshKeyLength
+            };
         }
     }
 }

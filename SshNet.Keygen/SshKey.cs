@@ -12,6 +12,13 @@ namespace SshNet.Keygen
     /// </summary>
     public static class SshKey
     {
+        /// <summary>Starts a fluent <see cref="SshKeyBuilder"/> for the given key type.</summary>
+        /// <param name="keyType">The key algorithm to generate.</param>
+        public static SshKeyBuilder Builder(SshKeyType keyType = SshKeyGenerateInfo.DefaultSshKeyType)
+        {
+            return new SshKeyBuilder(keyType);
+        }
+
         /// <summary>Generates a default key and writes it to <paramref name="path"/>.</summary>
         /// <param name="path">Destination file path.</param>
         /// <param name="mode">How the destination file is opened.</param>
