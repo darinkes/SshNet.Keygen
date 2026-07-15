@@ -315,5 +315,51 @@ namespace SshNet.Keygen.Tests
 
             Assert.DoesNotThrow((Action)(() => _ = new PrivateKeyFile(exported.ToStream(), passphrase)));
         }
+
+        [Test]
+        public void TestBuilderDefaults()
+        {
+            var key = SshKey.Builder().Generate();
+            ClassicAssert.IsInstanceOf<RsaKey>(((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key);
+            ClassicAssert.AreEqual(2048, ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.KeyLength);
+        }
+
+        [Test]
+        public void TestBuilderOfTypeResetsKeyLength()
+        {
+            // RSA default is 2048; OfType(ECDSA) must reset to ECDSA's 256 default
+            var key = SshKey.Builder().OfType(SshKeyType.ECDSA).Generate();
+            ClassicAssert.IsInstanceOf<EcdsaKey>(((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key);
+            ClassicAssert.AreEqual(256, ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.KeyLength);
+        }
+
+        [Test]
+        public void TestBuilderFluentOptions()
+        {
+            const string comment = "builder@test";
+            var key = SshKey.Builder(SshKeyType.RSA)
+                .WithKeyLength(3072)
+                .WithComment(comment)
+                .Generate();
+
+            ClassicAssert.AreEqual(3072, ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.KeyLength);
+            StringAssert.Contains(comment, key.ToPublic());
+        }
+
+        [Test]
+        public void TestBuilderEncryptedToFile()
+        {
+            const string password = "12345";
+            const string path = "id_builder";
+            File.Delete(path);
+
+            SshKey.Builder(SshKeyType.ED25519)
+                .WithPassphrase(password)
+                .Generate(path);
+
+            ClassicAssert.IsTrue(File.Exists(path));
+            // round-trips: encrypted file is readable back with the passphrase
+            _ = new PrivateKeyFile(path, password);
+        }
     }
 }

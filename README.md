@@ -38,6 +38,38 @@ SshNet.Keygen
 
 ## Usage Examples
 
+### Builder API
+
+`SshKey.Builder()` gives a fluent alternative to `SshKeyGenerateInfo`. Set the
+options you care about, then call a `Generate` overload (in-memory, to a
+`Stream`, or to a file).
+
+```cs
+// RSA-2048 in memory (defaults)
+var key = SshKey.Builder().Generate();
+
+// ECDSA-384 with a comment, in memory
+var key = SshKey.Builder(SshKeyType.ECDSA)
+    .WithKeyLength(384)
+    .WithComment("me@host")
+    .Generate();
+
+// Passphrase-protected Ed25519 written to a file
+var key = SshKey.Builder(SshKeyType.ED25519)
+    .WithPassphrase("12345")
+    .Generate("test.key");
+
+// PuTTY v3 with custom encryption, written to a file
+var key = SshKey.Builder(SshKeyType.RSA)
+    .WithKeyLength(4096)
+    .WithFormat(SshKeyFormat.PuTTYv3)
+    .WithEncryption(new SshKeyEncryptionAes256("12345"))
+    .Generate("test.ppk", FileMode.Create);
+
+var publicKey = key.ToPublic();
+var fingerprint = key.Fingerprint();
+```
+
 ### Generate an RSA-2048 Key in File, Show the Public Key and Connect with the Private Key
 
 ```cs
