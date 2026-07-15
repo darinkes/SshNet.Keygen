@@ -257,7 +257,7 @@ namespace SshNet.Keygen.Extensions
                 privateBase64String = Convert.ToBase64String(encrypted).FormatNewLines(64);
 
                 using var sha1 = SHA1.Create();
-                var macKey = sha1.ComputeHash(Encoding.ASCII.GetBytes("putty-private-key-file-mac-key" + encryption.Passphrase));
+                var macKey = sha1.ComputeHash(Encoding.UTF8.GetBytes("putty-private-key-file-mac-key" + encryption.Passphrase));
                 using var hmac = new HMACSHA1(macKey);
                 macHash = hmac.ComputeHash(hashData);
             }

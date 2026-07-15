@@ -302,5 +302,18 @@ namespace SshNet.Keygen.Tests
             TestFormatKey<ED25519Key>("ED25519", 256);
             TestFormatKey<ED25519Key>("ED25519", 256, "12345");
         }
+
+        [Test]
+        public void TestNonAsciiPassphraseRoundTrips()
+        {
+            // regression: ASCII encoding mangled non-ASCII passphrases into an unusable key.
+            // OpenSSH only — SSH.NET cannot read back its own encrypted PuTTY keys; real
+            // puttygen interop covers those.
+            const string passphrase = "Paßwort-Пароль";
+            var key = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519));
+            var exported = key.ToOpenSshFormat(new SshKeyEncryptionAes256(passphrase));
+
+            Assert.DoesNotThrow((Action)(() => _ = new PrivateKeyFile(exported.ToStream(), passphrase)));
+        }
     }
 }
