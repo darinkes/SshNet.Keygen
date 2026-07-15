@@ -53,7 +53,8 @@ namespace SshNet.Keygen.SshKeyEncryption
         public SshKeyEncryptionAes256(string passphrase, PuttyV3Encryption? puttyV3Encryption = null)
         {
             _passphrase = passphrase;
-            _passPhraseBytes = Encoding.ASCII.GetBytes(passphrase);
+            // UTF-8 to match OpenSSH and PuTTY 0.82+; ASCII mangled non-ASCII passphrases
+            _passPhraseBytes = Encoding.UTF8.GetBytes(passphrase);
             _salt = new byte[SaltLen];
             _puttyV3Encryption = puttyV3Encryption ?? new PuttyV3Encryption();
         }
