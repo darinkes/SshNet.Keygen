@@ -302,5 +302,22 @@ namespace SshNet.Keygen.Tests
             TestFormatKey<ED25519Key>("ED25519", 256);
             TestFormatKey<ED25519Key>("ED25519", 256, "12345");
         }
+
+        [Test]
+        public void TestEncryptionInstanceReuseAcrossExports()
+        {
+            // one instance is safe to reuse for sequential exports: each gets a fresh
+            // salt, so the outputs differ and both still decrypt
+            const string password = "12345";
+            var encryption = new SshKeyEncryptionAes256(password);
+            var key = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519));
+
+            var first = key.ToOpenSshFormat(encryption);
+            var second = key.ToOpenSshFormat(encryption);
+
+            ClassicAssert.AreNotEqual(first, second);
+            Assert.DoesNotThrow((Action)(() => _ = new PrivateKeyFile(first.ToStream(), password)));
+            Assert.DoesNotThrow((Action)(() => _ = new PrivateKeyFile(second.ToStream(), password)));
+        }
     }
 }

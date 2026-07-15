@@ -26,6 +26,11 @@ namespace SshNet.Keygen.SshKeyEncryption
     /// <summary>
     /// Encrypts a key with AES-256 (bcrypt KDF for OpenSSH, Argon2 for PuTTY v3).
     /// </summary>
+    /// <remarks>
+    /// Each export writes scratch state (the KDF salt, and the PuTTY v3 MAC key) onto the
+    /// instance, so it is not thread-safe: use a separate instance per concurrent export.
+    /// Reusing an instance for sequential exports is fine — a fresh salt is generated each time.
+    /// </remarks>
     public class SshKeyEncryptionAes256 : ISshKeyEncryption
     {
         /// <inheritdoc />
