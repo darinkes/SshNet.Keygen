@@ -27,6 +27,7 @@ namespace SshNet.Keygen.Tests
             using var dir = new TempDir();
             var keyPath = Path.Combine(dir.Path, "id");
             var key = Generate(keyType, SshKeyFormat.OpenSSH, encrypted, keyPath);
+            RestrictToOwner(keyPath); // ssh-keygen refuses a world-readable private key
 
             // ssh-keygen -y derives the public key from the private key, decrypting first
             var result = Run("ssh-keygen", $"-y -P \"{(encrypted ? Passphrase : "")}\" -f \"{keyPath}\"");
@@ -69,6 +70,14 @@ namespace SshNet.Keygen.Tests
                 Encryption = encrypted ? new SshKeyEncryptionAes256(Passphrase) : new SshKeyEncryptionNone()
             };
             return SshKey.Generate(path, FileMode.Create, info);
+        }
+
+        private static void RestrictToOwner(string path)
+        {
+#if NET8_0_OR_GREATER
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+#endif
         }
 
         // "<type> <base64>" — the identifying fields of an OpenSSH public key line, ignoring the comment
