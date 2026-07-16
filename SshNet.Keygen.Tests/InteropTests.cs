@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using NUnit.Framework;
 using SshNet.Keygen.Extensions;
 using SshNet.Keygen.SshKeyEncryption;
@@ -62,6 +63,80 @@ namespace SshNet.Keygen.Tests
             Assert.That(PublicKeyId(File.ReadAllText(outPath)), Is.EqualTo(PublicKeyId(key.ToOpenSshPublicFormat())));
         }
 
+        [Test]
+        public void SshKeygenVerifiesOurSignature(
+            [Values(SshKeyType.ED25519, SshKeyType.RSA, SshKeyType.ECDSA)] SshKeyType keyType)
+        {
+            RequireTool("ssh-keygen");
+
+            using var dir = new TempDir();
+            var key = SshKey.Generate(new SshKeyGenerateInfo(keyType));
+            var data = Encoding.UTF8.GetBytes("SshNet.Keygen real-world sign/verify");
+
+            var sigPath = Path.Combine(dir.Path, "data.sig");
+            File.WriteAllText(sigPath, key.Signature(data));
+
+            // allowed_signers line: "<principal> <keytype> <base64> [comment]"
+            const string identity = "signer@sshnet";
+            var allowedSigners = Path.Combine(dir.Path, "allowed_signers");
+            File.WriteAllText(allowedSigners, $"{identity} {key.ToOpenSshPublicFormat()}");
+
+            // ssh-keygen -Y verify reads the signed data from stdin; our signatures use the "file" namespace
+            var result = Run("ssh-keygen",
+                $"-Y verify -f \"{allowedSigners}\" -I {identity} -n file -s \"{sigPath}\"", data);
+            Assert.That(result.Code, Is.Zero, result.Stderr);
+        }
+
+        [Test]
+        public void WeVerifySshKeygenSignature(
+            [Values(SshKeyType.ED25519, SshKeyType.RSA, SshKeyType.ECDSA)] SshKeyType keyType)
+        {
+            RequireTool("ssh-keygen");
+
+            using var dir = new TempDir();
+            var keyPath = Path.Combine(dir.Path, "id");
+            Generate(keyType, SshKeyFormat.OpenSSH, encrypted: false, keyPath);
+            RestrictToOwner(keyPath); // ssh-keygen refuses a world-readable private key
+
+            var data = Encoding.UTF8.GetBytes("SshNet.Keygen real-world sign/verify");
+            var dataPath = Path.Combine(dir.Path, "data.txt");
+            File.WriteAllBytes(dataPath, data);
+
+            // ssh-keygen -Y sign writes the armored signature to <dataPath>.sig
+            var sign = Run("ssh-keygen", $"-Y sign -f \"{keyPath}\" -n file \"{dataPath}\"");
+            Assert.That(sign.Code, Is.Zero, sign.Stderr);
+
+            var signature = File.ReadAllText(dataPath + ".sig");
+            Assert.That(SshSignature.Verify(data, signature), Is.True);
+        }
+
+        [Test]
+        public void SshKeygenHonoursOurSignatureNamespace()
+        {
+            RequireTool("ssh-keygen");
+
+            using var dir = new TempDir();
+            var key = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519));
+            var data = Encoding.UTF8.GetBytes("SshNet.Keygen namespaced signature");
+
+            var sigPath = Path.Combine(dir.Path, "data.sig");
+            File.WriteAllText(sigPath, key.Signature(data, "git"));
+
+            const string identity = "signer@sshnet";
+            var allowedSigners = Path.Combine(dir.Path, "allowed_signers");
+            File.WriteAllText(allowedSigners, $"{identity} {key.ToOpenSshPublicFormat()}");
+
+            // ssh-keygen accepts the signature under the matching namespace...
+            var match = Run("ssh-keygen",
+                $"-Y verify -f \"{allowedSigners}\" -I {identity} -n git -s \"{sigPath}\"", data);
+            Assert.That(match.Code, Is.Zero, match.Stderr);
+
+            // ...and rejects it under a different one, proving the namespace is bound in
+            var mismatch = Run("ssh-keygen",
+                $"-Y verify -f \"{allowedSigners}\" -I {identity} -n file -s \"{sigPath}\"", data);
+            Assert.That(mismatch.Code, Is.Not.Zero);
+        }
+
         private static GeneratedPrivateKey Generate(SshKeyType keyType, SshKeyFormat format, bool encrypted, string path)
         {
             var info = new SshKeyGenerateInfo(keyType)
@@ -115,7 +190,7 @@ namespace SshNet.Keygen.Tests
             catch { return false; }
         }
 
-        private static (int Code, string Stdout, string Stderr) Run(string exe, string args)
+        private static (int Code, string Stdout, string Stderr) Run(string exe, string args, byte[] stdin = null)
         {
             var psi = new ProcessStartInfo
             {
@@ -123,11 +198,17 @@ namespace SshNet.Keygen.Tests
                 Arguments = args,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                RedirectStandardInput = stdin != null,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
 
             using var process = Process.Start(psi);
+            if (stdin != null)
+            {
+                process.StandardInput.BaseStream.Write(stdin, 0, stdin.Length);
+                process.StandardInput.Close();
+            }
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
             if (!process.WaitForExit(30000))

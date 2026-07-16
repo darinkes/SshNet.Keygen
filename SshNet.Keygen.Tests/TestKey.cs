@@ -209,6 +209,13 @@ namespace SshNet.Keygen.Tests
             return reader.ReadToEnd();
         }
 
+        private string GetSignatureResource(string keyname)
+        {
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"SshNet.Keygen.Tests.TestSignatures.{keyname}");
+            using var reader = new StreamReader(resourceStream, Encoding.ASCII);
+            return reader.ReadToEnd().Replace(Environment.NewLine, "\n");
+        }
+
         private void TestFormatKey<T>(string keyname, int keyLength, string passphrase = null)
         {
             if (!string.IsNullOrEmpty(passphrase))
@@ -360,6 +367,84 @@ namespace SshNet.Keygen.Tests
             ClassicAssert.IsTrue(File.Exists(path));
             // round-trips: encrypted file is readable back with the passphrase
             _ = new PrivateKeyFile(path, password);
+        }
+
+        [Test]
+        public void TestVerify()
+        {
+            var keys = new[] { "RSA2048", "RSA3072", "RSA4096", "RSA8192", "ECDSA256", "ECDSA384", "ECDSA521", "ED25519" };
+            var data = Encoding.UTF8.GetBytes(GetSignatureResource("file.txt"));
+
+            foreach (var key in keys)
+            {
+                TestContext.WriteLine($"Testing Key {key}");
+                var signature = GetSignatureResource($"file.txt.{key}.sig");
+                ClassicAssert.IsTrue(SshSignature.Verify(data, signature));
+            }
+        }
+
+        [Test]
+        public void TestSign()
+        {
+            var keys = new[] { "RSA2048", "RSA3072", "RSA4096", "RSA8192", "ECDSA256", "ECDSA384", "ECDSA521", "ED25519" };
+            var data = Encoding.UTF8.GetBytes(GetSignatureResource("file.txt"));
+
+            foreach (var key in keys)
+            {
+                TestContext.WriteLine($"Testing Key {key}");
+                var expectedSignature = GetSignatureResource($"file.txt.{key}.sig");
+                var keyData = GetKey(key);
+                var keyFile = new PrivateKeyFile(keyData.ToStream());
+                var signature = keyFile.Signature(data);
+                ClassicAssert.IsTrue(SshSignature.Verify(data, signature));
+
+                // ECDSA Signatures differ on each run
+                if (!key.StartsWith("ECDSA"))
+                    ClassicAssert.AreEqual(expectedSignature, signature);
+
+                var file = $"file-{key}.txt";
+                File.WriteAllText(file, "bla");
+                keyFile.SignatureFile(file);
+                ClassicAssert.IsTrue(SshSignature.VerifyFile(file, $"{file}.sig"));
+
+            }
+        }
+
+        [Test]
+        public void TestSignNamespaceAffectsSignature()
+        {
+            var data = Encoding.UTF8.GetBytes("namespaced data");
+            var keyFile = new PrivateKeyFile(GetKey("ED25519").ToStream());
+
+            var fileSig = keyFile.Signature(data);       // default "file"
+            var gitSig = keyFile.Signature(data, "git");
+
+            // Ed25519 is deterministic, so a different namespace must yield a different signature
+            ClassicAssert.AreNotEqual(fileSig, gitSig);
+            ClassicAssert.IsTrue(SshSignature.Verify(data, fileSig));
+            ClassicAssert.IsTrue(SshSignature.Verify(data, gitSig, "git"));
+            // and a signature is rejected when verified under the wrong namespace
+            ClassicAssert.IsFalse(SshSignature.Verify(data, gitSig));
+        }
+
+        [Test]
+        public void TestVerifyChecksSigner()
+        {
+            var data = Encoding.UTF8.GetBytes("who signed this?");
+            var signerKey = new PrivateKeyFile(GetKey("ED25519").ToStream());
+            var signature = signerKey.Signature(data);
+
+            // the out overload returns the signing public key
+            ClassicAssert.IsTrue(SshSignature.Verify(data, signature, out var signer));
+            ClassicAssert.IsInstanceOf<ED25519Key>(signer);
+
+            // verifying against the real signer succeeds...
+            var signerPublicKey = ((KeyHostAlgorithm)signerKey.HostKeyAlgorithms.First()).Key;
+            ClassicAssert.IsTrue(SshSignature.Verify(data, signature, signerPublicKey));
+
+            // ...but a different key is rejected even though the signature itself is valid
+            var otherKey = ((KeyHostAlgorithm)SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519)).HostKeyAlgorithms.First()).Key;
+            ClassicAssert.IsFalse(SshSignature.Verify(data, signature, otherKey));
         }
     }
 }

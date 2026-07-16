@@ -26,6 +26,7 @@
 
     <ItemGroup>
       <EmbeddedResource Include="TestKeys\*" />
+      <EmbeddedResource Include="TestSignatures\*" />
     </ItemGroup>
 
 </Project>
