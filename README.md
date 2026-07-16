@@ -268,3 +268,46 @@ Console.WriteLine("Putty Private Key: {0}", puttyKey);
 Console.WriteLine("Public Key: {0}", publicKey);
 Console.WriteLine("Putty Public Key: {0}", puttyPublicKey);
 ```
+
+### Sign and Verify (SSH signatures)
+
+Create and verify detached signatures in the OpenSSH `SSHSIG` format — the same
+format `ssh-keygen -Y sign` produces and `ssh-keygen -Y verify` checks. RSA,
+ECDSA and Ed25519 keys are supported.
+
+```cs
+var keyFile = new PrivateKeyFile("test.key");
+var data = File.ReadAllBytes("test.txt");
+
+// armored -----BEGIN SSH SIGNATURE----- text
+var signature = keyFile.Signature(data);
+
+// or sign a file directly (writes test.txt.sig next to it)
+keyFile.SignatureFile("test.txt");
+
+// the namespace defaults to "file"; pass your own (OpenSSH's -n) to bind the signature to it
+var gitSignature = keyFile.Signature(data, "git");
+```
+
+Verifying — **check who signed, not just that the signature is valid**:
+
+```cs
+// authenticate against a public key you trust
+var trusted = ((KeyHostAlgorithm)new PrivateKeyFile("signer.key").HostKeyAlgorithms.First()).Key;
+if (SshSignature.Verify(data, signature, trusted))
+    Console.WriteLine("signed by the trusted key");
+
+// or get the signer back and match it against your own allow-list
+if (SshSignature.Verify(data, signature, out var signer))
+    Console.WriteLine($"valid signature from a {signer} key");
+
+// verify a file's signature (optionally with an expected signer / namespace)
+SshSignature.VerifyFile("test.txt", "test.txt.sig");
+```
+
+> `SshSignature.Verify(data, signature)` proves the signature is *valid*, not that a
+> *trusted* party made it — the public key is taken from the signature itself, so any
+> key verifies. To authenticate the signer, pass the expected public key (or use the
+> `out` overload and match the returned key against your trust set), just as
+> `ssh-keygen -Y verify` requires an `allowed_signers` file. The namespace is enforced
+> and defaults to `file`.

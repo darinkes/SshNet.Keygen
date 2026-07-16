@@ -306,7 +306,7 @@ namespace SshNet.Keygen.Extensions
 
         #endregion
 
-        private static void PublicKeyData(this Key key, BinaryWriter writer)
+        internal static void PublicKeyData(this Key key, BinaryWriter writer)
         {
             writer.EncodeBinary(key.ToString()!);
             switch (key.ToString())
