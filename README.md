@@ -14,6 +14,7 @@ SshNet.Keygen
 
 * .NET 4.8
 * netstandard 2.0
+* .NET 8.0
 
 ## Keys
 * ssh-ed25519
