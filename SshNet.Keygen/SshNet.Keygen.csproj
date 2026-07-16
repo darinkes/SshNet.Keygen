@@ -7,7 +7,7 @@
         <!-- docs enforced via .editorconfig (CS1591 = error for our code, none for vendored) -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageId>SshNet.Keygen</PackageId>
-        <Version>2024.2.0.2</Version>
+        <Version>2024.2.0.3</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <PackageTags>ssh;scp;sftp</PackageTags>
         <Description>SSH.NET Extension to generate and export Authentication Keys in OpenSSH and PuTTY Format.</Description>
