@@ -17,6 +17,13 @@
       <ProjectReference Include="..\SshNet.Keygen\SshNet.Keygen.csproj" />
     </ItemGroup>
 
+    <!-- A plain restore resolves the floor of the library's SSH.NET range; CI runs a
+         second leg with -p:SshNetVersion=<current> so the tests also exercise the
+         latest SSH.NET (e.g. its PuTTY-key reader, which the floor could not do). -->
+    <ItemGroup Condition="'$(SshNetVersion)' != ''">
+        <PackageReference Include="SSH.NET" Version="[$(SshNetVersion)]" />
+    </ItemGroup>
+
     <ItemGroup>
       <EmbeddedResource Include="TestKeys\*" />
     </ItemGroup>
