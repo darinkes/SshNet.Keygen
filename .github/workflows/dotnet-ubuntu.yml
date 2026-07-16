@@ -35,6 +35,10 @@ jobs:
       env:
         # run the ssh-keygen/puttygen interop tests instead of skipping them
         SSHNET_KEYGEN_INTEROP_REQUIRED: "1"
+    - name: Test against the latest SSH.NET
+      run: dotnet test --verbosity normal -p:SshNetVersion=2025.1.0
+      env:
+        SSHNET_KEYGEN_INTEROP_REQUIRED: "1"
     - uses: actions/upload-artifact@v7
       with:
         name: Sample-ubuntu
