@@ -103,7 +103,10 @@ namespace SshNet.Keygen.Extensions
             using var privStream = new MemoryStream();
             using var privWriter = new BinaryWriter(privStream);
 
-            var rnd = new Random().Next(0, int.MaxValue);
+            var checkBytes = new byte[4];
+            using (var rng = RandomNumberGenerator.Create())
+                rng.GetBytes(checkBytes);
+            var rnd = BitConverter.ToInt32(checkBytes, 0);
             privWriter.EncodeInt(rnd); // check-int1
             privWriter.EncodeInt(rnd); // check-int2
             privWriter.EncodeBinary(key.ToString()!);
