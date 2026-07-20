@@ -37,6 +37,9 @@ SshNet.Keygen
 * None
 * AES256-cbc
 
+## Certificates
+* Sign OpenSSH user and host certificates (`SshCertificateBuilder`)
+
 ## Usage Examples
 
 ### Builder API
@@ -70,6 +73,51 @@ var key = SshKey.Builder(SshKeyType.RSA)
 var publicKey = key.ToPublic();
 var fingerprint = key.Fingerprint();
 ```
+
+### Sign an OpenSSH Certificate
+
+`SshCertificateBuilder` mints and signs OpenSSH certificates (the `ssh-keygen -s`
+step) for user or host authentication. Point it at the public key to certify,
+set the certificate fields, and sign with your CA key.
+
+```cs
+var caKey = new PrivateKeyFile("ca");            // your CA private key
+var userKey = new PrivateKeyFile("id_ed25519");  // the key to certify
+
+var certificate = new SshCertificateBuilder(userKey)
+    .WithSerial(1)
+    .WithKeyId("alice@example.com")
+    .WithPrincipal("alice")
+    .WithValidity(DateTime.UtcNow, DateTime.UtcNow.AddHours(8))
+    .SignWith(caKey);
+
+// OpenSSH expects the certificate next to the key as <key>-cert.pub
+File.WriteAllText("id_ed25519-cert.pub", certificate.ToOpenSshPublicFormat());
+
+Console.WriteLine(certificate.Fingerprint());
+```
+
+The CA and the key to certify can be freshly generated too, and host
+certificates work the same way:
+
+```cs
+var ca = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519));
+var host = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519));
+
+var hostCert = new SshCertificateBuilder(host)
+    .WithType(SshCertificateType.Host)
+    .WithPrincipal("host.example.com")
+    .ValidForever()
+    .SignWith(ca);
+```
+
+User certificates get OpenSSH's default extensions (`permit-pty`,
+`permit-user-rc`, …). Override them with `WithExtension`, and add restrictions
+like `force-command` or `source-address` with `WithCriticalOption`. A server
+trusts these certificates when its `TrustedUserCAKeys` names the CA public key
+(user certs), or a client's `known_hosts` `@cert-authority` line does (host
+certs). The resulting certificate can be authenticated with directly, or offered
+through a key agent - see [SshNet.Agent](https://github.com/darinkes/SshNet.Agent).
 
 ### Generate an RSA-2048 Key in File, Show the Public Key and Connect with the Private Key
 

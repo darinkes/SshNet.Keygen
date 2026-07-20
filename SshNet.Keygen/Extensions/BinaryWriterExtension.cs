@@ -51,5 +51,13 @@ namespace SshNet.Keygen.Extensions
                 Array.Reverse(data);
             writer.Write(data);
         }
+
+        public static void EncodeUInt64(this BinaryWriter writer, ulong i)
+        {
+            var data = BitConverter.GetBytes(i);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(data);
+            writer.Write(data);
+        }
     }
 }
