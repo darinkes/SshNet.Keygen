@@ -84,16 +84,7 @@ namespace SshNet.Keygen
                 case SshKeyType.RSA:
                 {
                     using var rsa = CreateRSA(info.KeyLength);
-                    var rsaParameters = rsa.ExportParameters(true);
-
-                    key = new RsaKey(
-                        rsaParameters.Modulus!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.Exponent!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.D!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.P!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.Q!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
-                        rsaParameters.InverseQ!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger()
-                    );
+                    key = ToRsaKey(rsa.ExportParameters(true));
                     break;
                 }
                 case SshKeyType.ECDSA:
@@ -143,6 +134,105 @@ namespace SshNet.Keygen
 
             key.Comment = info.Comment;
             return new GeneratedPrivateKey(key, info);
+        }
+
+        /// <summary>Wraps an existing <see cref="RSA"/> key as an SSH.NET key.</summary>
+        /// <param name="rsa">The RSA key (must be exportable, including the private key).</param>
+        /// <param name="comment">Optional key comment.</param>
+        public static GeneratedPrivateKey FromKey(RSA rsa, string? comment = null)
+        {
+            var key = ToRsaKey(rsa.ExportParameters(true));
+            key.Comment = comment ?? "";
+            return new GeneratedPrivateKey(key, new SshKeyGenerateInfo(SshKeyType.RSA));
+        }
+
+        /// <summary>Wraps an existing <see cref="ECDsa"/> key as an SSH.NET key.</summary>
+        /// <param name="ecdsa">The ECDSA key (must be exportable, including the private key).</param>
+        /// <param name="comment">Optional key comment.</param>
+        public static GeneratedPrivateKey FromKey(ECDsa ecdsa, string? comment = null)
+        {
+            var p = ecdsa.ExportParameters(true);
+            var key = new EcdsaKey(ecdsa.EcCurveNameSshCompat(), p.UncompressedCoords(), p.D!);
+            key.Comment = comment ?? "";
+            return new GeneratedPrivateKey(key, new SshKeyGenerateInfo(SshKeyType.ECDSA));
+        }
+
+        /// <summary>Wraps an Ed25519 key given its raw 32-byte seed or 64-byte expanded (seed+public) key.</summary>
+        /// <param name="key">32-byte RFC 8032 seed, or 64-byte OpenSSH expanded private key.</param>
+        /// <param name="comment">Optional key comment.</param>
+        public static GeneratedPrivateKey FromEd25519(byte[] key, string? comment = null)
+        {
+            if (key is null)
+                throw new ArgumentNullException(nameof(key));
+
+            var seed = new byte[32];
+            switch (key.Length)
+            {
+                case 32:
+                case 64: // seed || public
+                    Buffer.BlockCopy(key, 0, seed, 0, 32);
+                    break;
+                default:
+                    throw new ArgumentException("Ed25519 key must be a 32-byte seed or 64-byte expanded key.", nameof(key));
+            }
+
+            var ed = new ED25519Key(seed) { Comment = comment ?? "" };
+            return new GeneratedPrivateKey(ed, new SshKeyGenerateInfo(SshKeyType.ED25519));
+        }
+
+#if NET8_0_OR_GREATER
+        /// <summary>Imports an RSA or ECDSA private key from a PEM (PKCS#1, SEC1 or PKCS#8, optionally encrypted).</summary>
+        /// <param name="pem">The PEM text.</param>
+        /// <param name="passphrase">Passphrase for an encrypted PKCS#8 PEM, or null.</param>
+        public static GeneratedPrivateKey FromPem(string pem, string? passphrase = null)
+        {
+            using var rsa = RSA.Create();
+            if (TryImportPem(rsa, pem, passphrase))
+                return FromKey(rsa);
+
+            using var ecdsa = ECDsa.Create();
+            if (TryImportPem(ecdsa, pem, passphrase))
+                return FromKey(ecdsa);
+
+            throw new CryptographicException("Could not import PEM as an RSA or ECDSA private key (wrong passphrase or unsupported key).");
+        }
+
+        private static bool TryImportPem(AsymmetricAlgorithm alg, string pem, string? passphrase)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(passphrase))
+                    alg.ImportFromPem(pem);
+                else
+                    alg.ImportFromEncryptedPem(pem, passphrase);
+                return true;
+            }
+            catch (ArgumentException) { return false; }      // no matching PEM label for this algorithm
+            catch (CryptographicException) { return false; } // wrong algorithm or passphrase
+        }
+#else
+        // ponytail: netstandard2.0/net48 BCL has no ImportFromPem; a hand-rolled ASN.1 PKCS#8 parser
+        // is well over the ~40 line ceiling, so PEM import is net8.0-only. Upgrade path: port the parser
+        // via System.Formats.Asn1 (already referenced) if older TFMs ever need it.
+        /// <summary>PEM import is only available on .NET 8 or later.</summary>
+        /// <param name="pem">The PEM text.</param>
+        /// <param name="passphrase">Passphrase for an encrypted PKCS#8 PEM, or null.</param>
+        public static GeneratedPrivateKey FromPem(string pem, string? passphrase = null)
+        {
+            throw new PlatformNotSupportedException("SshKey.FromPem requires .NET 8 or later (BCL ImportFromPem/ImportFromEncryptedPem).");
+        }
+#endif
+
+        private static RsaKey ToRsaKey(RSAParameters p)
+        {
+            return new RsaKey(
+                p.Modulus!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                p.Exponent!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                p.D!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                p.P!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                p.Q!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger(),
+                p.InverseQ!.ToBigInteger2().ToByteArray().Reverse().ToBigInteger()
+            );
         }
 
         private static RSA CreateRSA(int keySize)

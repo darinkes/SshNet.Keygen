@@ -14,7 +14,6 @@ namespace SshNet.Keygen.Extensions
             return q;
         }
 
-#if NETSTANDARD
         // EcParameters.Curve.Oid.FriendlyName returns different values if OpenSSL or Windows-Crypto
         public static string EcCurveNameSshCompat(this ECDsa ecdsa)
         {
@@ -33,7 +32,8 @@ namespace SshNet.Keygen.Extensions
             var qy = ecdsaParameters.Q.Y!;
             return UncompressedCoords(qx, qy);
         }
-#else
+
+#if !NETSTANDARD
         public enum KeyBlobMagicNumber
         {
             BCRYPT_ECDSA_PRIVATE_P256_MAGIC = 0x32534345,
