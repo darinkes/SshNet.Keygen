@@ -1,7 +1,0 @@
-root = true
-
-# Undocumented public members are an error, so the public API stays documented.
-# (Vendored Chaos.NaCl is silenced by a CI step that drops a deeper .editorconfig next
-#  to its sources — its own root .editorconfig blocks a rule here from reaching them.)
-[*.cs]
-dotnet_diagnostic.CS1591.severity = error

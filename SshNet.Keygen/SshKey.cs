@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-using Chaos.NaCl;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
 
@@ -75,11 +74,11 @@ namespace SshNet.Keygen
             {
                 case SshKeyType.ED25519:
                 {
+                    // SSH.NET's ED25519Key takes the 32-byte RFC 8032 seed and derives the public key.
                     using var rngCsp = RandomNumberGenerator.Create();
-                    var seed = new byte[Ed25519.PrivateKeySeedSizeInBytes];
+                    var seed = new byte[32];
                     rngCsp.GetBytes(seed);
-                    Ed25519.KeyPairFromSeed(out _, out var edKey, seed);
-                    key = new ED25519Key(edKey.Reverse());
+                    key = new ED25519Key(seed);
                     break;
                 }
                 case SshKeyType.RSA:

@@ -13,13 +13,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-      with:
-        submodules: recursive
-    # Chaos.NaCl ships a root=true .editorconfig that blocks our CS1591 rule; drop a
-    # deeper one so its vendored sources don't trip the documented-API check.
-    - name: Exempt vendored Chaos.NaCl from the doc check
-      shell: bash
-      run: printf '[*.cs]\ndotnet_diagnostic.CS1591.severity = none\n' > Chaos.NaCl/Chaos.NaCl/.editorconfig
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:

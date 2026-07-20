@@ -4,8 +4,8 @@
         <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0;net8.0</TargetFrameworks>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
-        <!-- docs enforced via .editorconfig (CS1591 = error for our code, none for vendored) -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>CS1591</WarningsAsErrors>
         <PackageId>SshNet.Keygen</PackageId>
         <Version>2024.2.0.3</Version>
         <PackageVersion>$(Version)</PackageVersion>
@@ -41,10 +41,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="..\Chaos.NaCl\Chaos.NaCl\**\*.cs" Exclude="..\Chaos.NaCl\Chaos.NaCl\Properties\*">
-            <Link>Chaos.Nacl\%(RecursiveDir)%(Filename)%(Extension)</Link>
-        </Compile>
-
         <PackageReference Include="SSH.NET" Version="[2024.2.0,2026.0)" />
         <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1"/>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.301" PrivateAssets="All" />
