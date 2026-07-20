@@ -312,6 +312,12 @@ namespace SshNet.Keygen.Extensions
         internal static void PublicKeyData(this Key key, BinaryWriter writer)
         {
             writer.EncodeBinary(key.ToString()!);
+            key.PublicKeyFields(writer);
+        }
+
+        // The type-specific public key fields, without the leading algorithm name.
+        internal static void PublicKeyFields(this Key key, BinaryWriter writer)
+        {
             switch (key.ToString())
             {
                 case "ssh-ed25519":
