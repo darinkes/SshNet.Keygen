@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using Renci.SshNet;
@@ -55,6 +56,26 @@ namespace SshNet.Keygen.Tests
             ClassicAssert.AreEqual(4711UL, r.UInt64());   // serial
             ClassicAssert.AreEqual(1U, r.UInt32());       // user cert
             ClassicAssert.AreEqual("self-verify", r.String());
+        }
+
+        [Test]
+        public void NonAsciiKeyIdAndPrincipalAreUtf8()
+        {
+            // regression: ASCII encoding minted certificates with principal "m?ller"
+            var cert = new SshCertificateBuilder(Gen(SshKeyType.ED25519))
+                .WithKeyId("müller-id")
+                .WithPrincipal("müller")
+                .SignWith(Gen(SshKeyType.ED25519));
+
+            var r = new Reader(cert.ToByteArray());
+            r.String();                                   // type
+            r.String();                                   // nonce
+            r.String();                                   // ed25519 pk
+            r.UInt64();                                   // serial
+            r.UInt32();                                   // cert type
+            ClassicAssert.AreEqual(Encoding.UTF8.GetBytes("müller-id"), r.String());
+            var principals = new Reader(r.String());
+            ClassicAssert.AreEqual(Encoding.UTF8.GetBytes("müller"), principals.String());
         }
 
         [Test]
