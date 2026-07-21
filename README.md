@@ -269,3 +269,8 @@ Console.WriteLine("Putty Private Key: {0}", puttyKey);
 Console.WriteLine("Public Key: {0}", publicKey);
 Console.WriteLine("Putty Public Key: {0}", puttyPublicKey);
 ```
+
+## Related Projects
+
+* [SshNet.Agent](https://github.com/darinkes/SshNet.Agent) - authenticate via OpenSSH Agent and PuTTY Pageant
+* [SshNet.Tpm](https://github.com/darinkes/SshNet.Tpm) - TPM-backed, non-exportable SSH authentication keys
