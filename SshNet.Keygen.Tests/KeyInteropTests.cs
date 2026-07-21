@@ -91,6 +91,26 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void FromEcdsaRejectsNonNistCurve()
+        {
+            // regression: brainpool keys were mapped to a NIST curve by key size and failed deep inside SSH.NET
+            ECDsa ecdsa;
+            try
+            {
+                ecdsa = ECDsa.Create(ECCurve.CreateFromFriendlyName("brainpoolP256r1"));
+                _ = ecdsa.ExportParameters(false);
+            }
+            catch (Exception)
+            {
+                Assert.Ignore("brainpoolP256r1 not supported on this platform");
+                return;
+            }
+
+            using (ecdsa)
+                Assert.Throws<NotSupportedException>((Action)(() => SshKey.FromKey(ecdsa)));
+        }
+
+        [Test]
         public void FromEd25519RoundTrips()
         {
             var seed = new byte[32];
