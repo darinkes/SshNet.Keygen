@@ -40,6 +40,9 @@ SshNet.Keygen
 ## Certificates
 * Sign OpenSSH user and host certificates (`SshCertificateBuilder`)
 
+## .NET Key Interop
+* Import `System.Security.Cryptography` keys and PEM files (`SshKey.FromKey`, `SshKey.FromPem`, `SshKey.FromEd25519`)
+
 ## Usage Examples
 
 ### Builder API
@@ -317,6 +320,29 @@ Console.WriteLine("Putty Private Key: {0}", puttyKey);
 Console.WriteLine("Public Key: {0}", publicKey);
 Console.WriteLine("Putty Public Key: {0}", puttyPublicKey);
 ```
+
+### Use an existing .NET Key
+
+`SshKey.FromKey` wraps a BCL `RSA` or `ECDsa` key (NIST curves) as an SSH.NET
+key, `SshKey.FromEd25519` takes a raw 32-byte seed (or 64-byte expanded key),
+and `SshKey.FromPem` imports a PEM (PKCS#1, SEC1 or PKCS#8, optionally
+encrypted). The result can be exported or used to connect like any generated key.
+
+```cs
+using var rsa = RSA.Create(2048);
+var key = SshKey.FromKey(rsa, "me@host");
+
+// or from a PEM file
+var pemKey = SshKey.FromPem(File.ReadAllText("key.pem"), "passphrase");
+
+Console.WriteLine("Public Key: {0}", key.ToPublic());
+
+using var client = new SshClient("ssh.foo.com", "root", key);
+client.Connect();
+```
+
+> `SshKey.FromPem` requires .NET 8 or later; on .NET 4.8 and netstandard 2.0 it
+> throws `PlatformNotSupportedException`.
 
 ### Sign and Verify (SSH signatures)
 
