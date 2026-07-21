@@ -14,15 +14,24 @@ namespace SshNet.Keygen.Extensions
             return q;
         }
 
-        // EcParameters.Curve.Oid.FriendlyName returns different values if OpenSSL or Windows-Crypto
+        // EcParameters.Curve.Oid.FriendlyName returns different values if OpenSSL or Windows-Crypto, so match on the OID value
         public static string EcCurveNameSshCompat(this ECDsa ecdsa)
         {
-            return ecdsa.KeySize switch
+            var oid = ecdsa.ExportParameters(false).Curve.Oid;
+            return oid?.Value switch
             {
-                256 => "nistp256",
-                384 => "nistp384",
-                521 => "nistp521",
-                _ => throw new CryptographicException($"Unsupported KeyLength: {ecdsa.KeySize}")
+                "1.2.840.10045.3.1.7" => "nistp256",
+                "1.3.132.0.34" => "nistp384",
+                "1.3.132.0.35" => "nistp521",
+                // some platforms report no OID value; fall back to the key size
+                null or "" => ecdsa.KeySize switch
+                {
+                    256 => "nistp256",
+                    384 => "nistp384",
+                    521 => "nistp521",
+                    _ => throw new CryptographicException($"Unsupported KeyLength: {ecdsa.KeySize}")
+                },
+                _ => throw new NotSupportedException($"Unsupported ECDSA curve: {oid.FriendlyName ?? oid.Value}")
             };
         }
 
