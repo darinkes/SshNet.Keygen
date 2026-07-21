@@ -92,6 +92,8 @@ namespace SshNet.Keygen
         /// <param name="validBefore">Not valid after this time.</param>
         public SshCertificateBuilder WithValidity(DateTime validAfter, DateTime validBefore)
         {
+            if (validAfter > validBefore)
+                throw new ArgumentException("validAfter must not be later than validBefore.", nameof(validAfter));
             _validAfter = ToUnixSeconds(validAfter);
             _validBefore = ToUnixSeconds(validBefore);
             return this;
@@ -128,6 +130,8 @@ namespace SshNet.Keygen
         /// <param name="nonce">The nonce.</param>
         public SshCertificateBuilder WithNonce(byte[] nonce)
         {
+            if (nonce is null || nonce.Length == 0)
+                throw new ArgumentException("Nonce must not be null or empty.", nameof(nonce));
             _nonce = nonce;
             return this;
         }

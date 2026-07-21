@@ -79,6 +79,23 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void RejectsEmptyNonce()
+        {
+            var builder = new SshCertificateBuilder(Gen(SshKeyType.ED25519));
+            Assert.Throws<ArgumentException>((Action)(() => builder.WithNonce(null!)));
+            Assert.Throws<ArgumentException>((Action)(() => builder.WithNonce(Array.Empty<byte>())));
+        }
+
+        [Test]
+        public void RejectsInvertedValidity()
+        {
+            var builder = new SshCertificateBuilder(Gen(SshKeyType.ED25519));
+            Assert.Throws<ArgumentException>((Action)(() => builder.WithValidity(
+                new DateTime(2031, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                new DateTime(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc))));
+        }
+
+        [Test]
         public void SshKeygenAcceptsCertificate(
             [Values(SshKeyType.RSA, SshKeyType.ECDSA, SshKeyType.ED25519)] SshKeyType certifiedType,
             [Values(SshKeyType.RSA, SshKeyType.ECDSA, SshKeyType.ED25519)] SshKeyType caType)
