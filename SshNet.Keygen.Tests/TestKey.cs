@@ -324,6 +324,69 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void TestNonAsciiCommentRoundTrips()
+        {
+            // regression: ASCII encoding mangled non-ASCII comments to '?' in the key blob
+            const string comment = "Müller@München";
+            var key = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519) { Comment = comment });
+            var reloaded = new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
+            ClassicAssert.AreEqual(comment, ((KeyHostAlgorithm)reloaded.HostKeyAlgorithms.First()).Key.Comment);
+        }
+
+        [Test]
+        public void TestPuttyMacCoversUtf8Comment()
+        {
+            // regression: the Private-MAC was computed over an ASCII-mangled comment while the file carries UTF-8
+            const string comment = "Müller@München";
+            var key = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519) { Comment = comment });
+            var ppk = key.ToPuttyFormat(SshKeyFormat.PuTTYv2);
+
+            var lines = ppk.Split('\n');
+            string Field(string name) => lines.First(l => l.StartsWith(name + ": ")).Substring(name.Length + 2);
+            byte[] Block(string name) => Convert.FromBase64String(string.Concat(
+                lines.Skip(Array.FindIndex(lines, l => l.StartsWith(name + ": ")) + 1).Take(int.Parse(Field(name)))));
+
+            ClassicAssert.AreEqual(comment, Field("Comment"));
+
+            // recompute the MAC over the file's actual bytes (unencrypted PuTTYv2)
+            using var macData = new MemoryStream();
+            foreach (var part in new[]
+                     {
+                         Encoding.UTF8.GetBytes(Field("PuTTY-User-Key-File-2")),
+                         Encoding.UTF8.GetBytes(Field("Encryption")),
+                         Encoding.UTF8.GetBytes(Field("Comment")),
+                         Block("Public-Lines"),
+                         Block("Private-Lines")
+                     })
+            {
+                var len = BitConverter.GetBytes((uint)part.Length);
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(len);
+                macData.Write(len, 0, 4);
+                macData.Write(part, 0, part.Length);
+            }
+
+            using var sha1 = SHA1.Create();
+            var macKey = sha1.ComputeHash(Encoding.UTF8.GetBytes("putty-private-key-file-mac-key"));
+            using var hmac = new HMACSHA1(macKey);
+            var expected = BitConverter.ToString(hmac.ComputeHash(macData.ToArray())).Replace("-", "").ToLower();
+
+            ClassicAssert.AreEqual(expected, Field("Private-MAC").Trim());
+        }
+
+        [Test]
+        public void TestSignVerifyNonAsciiNamespace()
+        {
+            // regression: ASCII encoding corrupted the SSHSIG namespace both on sign and verify
+            var data = Encoding.UTF8.GetBytes("utf-8 namespace data");
+            var keyFile = new PrivateKeyFile(GetKey("ED25519").ToStream());
+
+            var signature = keyFile.Signature(data, "büro-münchen");
+            ClassicAssert.IsTrue(SshSignature.Verify(data, signature, "büro-münchen"));
+            ClassicAssert.IsFalse(SshSignature.Verify(data, signature));
+        }
+
+        [Test]
         public void TestBuilderDefaults()
         {
             var key = SshKey.Builder().Generate();

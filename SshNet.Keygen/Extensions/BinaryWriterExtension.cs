@@ -9,13 +9,13 @@ namespace SshNet.Keygen.Extensions
     {
         public static void EncodeNullTerminatedString(this BinaryWriter writer, string str)
         {
-            writer.Write(Encoding.ASCII.GetBytes(str));
+            writer.Write(Encoding.UTF8.GetBytes(str));
             writer.Write('\0');
         }
 
         public static void EncodeBinary(this BinaryWriter writer, string str)
         {
-            EncodeBinary(writer, Encoding.ASCII.GetBytes(str));
+            EncodeBinary(writer, Encoding.UTF8.GetBytes(str));
         }
 
         public static void EncodeBinary(this BinaryWriter writer, MemoryStream str)
