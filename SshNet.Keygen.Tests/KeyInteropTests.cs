@@ -107,7 +107,12 @@ namespace SshNet.Keygen.Tests
             }
 
             using (ecdsa)
+#if NET8_0_OR_GREATER
                 Assert.Throws<NotSupportedException>((Action)(() => SshKey.FromKey(ecdsa)));
+#else
+                // net48 CNG hides the curve OID, so SSH.NET rejects the non-NIST point later
+                Assert.Catch((Action)(() => SshKey.FromKey(ecdsa)));
+#endif
         }
 
         [Test]
