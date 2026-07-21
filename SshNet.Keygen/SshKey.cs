@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using Renci.SshNet.Security;
 using SshNet.Keygen.Extensions;
 
@@ -41,7 +42,8 @@ namespace SshNet.Keygen
         /// <param name="info">Generation and export options.</param>
         public static GeneratedPrivateKey Generate(Stream stream, SshKeyGenerateInfo info)
         {
-            using var writer = new StreamWriter(stream);
+            // leave the caller's stream open
+            using var writer = new StreamWriter(stream, new UTF8Encoding(false), 1024, true);
 
             var key = Generate(info);
             switch (info.KeyFormat)

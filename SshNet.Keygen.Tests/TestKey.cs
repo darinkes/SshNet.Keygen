@@ -324,6 +324,17 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void TestGenerateLeavesStreamOpen()
+        {
+            // regression: Generate disposed the caller's stream
+            using var stream = new MemoryStream();
+            SshKey.Generate(stream, new SshKeyGenerateInfo(SshKeyType.ED25519));
+
+            stream.Position = 0;
+            _ = new PrivateKeyFile(stream);
+        }
+
+        [Test]
         public void TestNonAsciiCommentRoundTrips()
         {
             // regression: ASCII encoding mangled non-ASCII comments to '?' in the key blob
