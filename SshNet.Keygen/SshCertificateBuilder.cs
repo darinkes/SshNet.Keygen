@@ -150,6 +150,26 @@ namespace SshNet.Keygen
             if (caKey is null)
                 throw new ArgumentNullException(nameof(caKey));
 
+            return Sign(CaHostAlgorithm(caKey));
+        }
+
+        /// <summary>
+        /// Signs the certificate with the given CA host algorithm. Use this when the CA private key
+        /// lives outside the process — in a TPM or HSM — and cannot be handed over as a <see cref="Key"/>:
+        /// the algorithm carries the signer, so the key is never exported. Pass, for example, the first
+        /// entry of an <see cref="IPrivateKeySource.HostKeyAlgorithms"/> backed by such a signer.
+        /// </summary>
+        /// <param name="caAlgorithm">The CA host algorithm; its key and signer sign the certificate.</param>
+        public SshCertificate SignWith(KeyHostAlgorithm caAlgorithm)
+        {
+            if (caAlgorithm is null)
+                throw new ArgumentNullException(nameof(caAlgorithm));
+
+            return Sign(caAlgorithm);
+        }
+
+        private SshCertificate Sign(KeyHostAlgorithm ca)
+        {
             var typeName = $"{_publicKey}-cert-v01@openssh.com";
             var nonce = _nonce ?? RandomBytes(32);
 
@@ -168,10 +188,10 @@ namespace SshNet.Keygen
             writer.EncodeBinary(EncodeOptions(_criticalOptions));
             writer.EncodeBinary(EncodeOptions(EffectiveExtensions()));
             writer.EncodeBinary("");                      // reserved
-            writer.EncodeBinary(PublicKeyBlob(caKey));    // signature key: CA public key blob
+            writer.EncodeBinary(PublicKeyBlob(ca.Key));   // signature key: CA public key blob
 
             // signature over everything serialized so far
-            var signature = CaHostAlgorithm(caKey).Sign(stream.ToArray());
+            var signature = ca.Sign(stream.ToArray());
             writer.EncodeBinary(signature);
 
             var comment = string.IsNullOrEmpty(_publicKey.Comment) ? _keyId : _publicKey.Comment;
@@ -189,7 +209,7 @@ namespace SshNet.Keygen
             return defaults;
         }
 
-        private static HostAlgorithm CaHostAlgorithm(Key caKey)
+        private static KeyHostAlgorithm CaHostAlgorithm(Key caKey)
         {
             // OpenSSH signs certificates with an RSA CA using rsa-sha2-512; other key types use their native algorithm.
             if (caKey is RsaKey rsaKey)
