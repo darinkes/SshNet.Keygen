@@ -59,6 +59,27 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void SignWithHostAlgorithmSelfVerifies(
+            [Values(SshKeyType.RSA, SshKeyType.ECDSA, SshKeyType.ED25519)] SshKeyType caType)
+        {
+            var certified = Gen(SshKeyType.ECDSA);
+            var ca = Gen(caType);
+
+            // an external signer (a TPM/HSM-backed IPrivateKeySource) supplies a host algorithm instead
+            // of handing over the private key; the builder signs through it
+            var caAlgorithm = (KeyHostAlgorithm)CaHostAlgorithm(KeyOf(ca));
+
+            var cert = new SshCertificateBuilder(certified)
+                .WithType(SshCertificateType.User)
+                .WithKeyId("ext-signer")
+                .WithPrincipal("alice")
+                .SignWith(caAlgorithm);
+
+            var (signed, signature) = SplitSignature(cert.ToByteArray(), KeyOf(certified).ToString()!);
+            Assert.That(CaHostAlgorithm(KeyOf(ca)).VerifySignature(signed, signature), Is.True);
+        }
+
+        [Test]
         public void NonAsciiKeyIdAndPrincipalAreUtf8()
         {
             // regression: ASCII encoding minted certificates with principal "m?ller"
