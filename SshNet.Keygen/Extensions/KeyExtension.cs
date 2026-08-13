@@ -144,7 +144,7 @@ namespace SshNet.Keygen.Extensions
                     throw new NotSupportedException($"Unsupported KeyType: {key}");
             }
             // comment
-            privWriter.EncodeBinary(key.Comment);
+            privWriter.EncodeBinary(key.Comment ?? "");
 
             // private key padding (1, 2, 3, ...)
             var pad = 0;
@@ -245,7 +245,7 @@ namespace SshNet.Keygen.Extensions
             using var macWriter = new BinaryWriter(macStream);
             macWriter.EncodeBinary(key.ToString()!);
             macWriter.EncodeBinary(encryption.CipherName);
-            macWriter.EncodeBinary(key.Comment);
+            macWriter.EncodeBinary(key.Comment ?? "");
             macWriter.EncodeBinary(pubStream);
             macWriter.EncodeBinary(privStream);
 

@@ -345,6 +345,17 @@ namespace SshNet.Keygen.Tests
         }
 
         [Test]
+        public void TestNullCommentExports()
+        {
+            var key = SshKey.Generate(new SshKeyGenerateInfo(SshKeyType.ED25519));
+            ((KeyHostAlgorithm)key.HostKeyAlgorithms.First()).Key.Comment = null;
+
+            var reloaded = new PrivateKeyFile(key.ToOpenSshFormat().ToStream());
+            ClassicAssert.AreEqual("", ((KeyHostAlgorithm)reloaded.HostKeyAlgorithms.First()).Key.Comment);
+            Assert.DoesNotThrow((Action)(() => key.ToPuttyFormat(SshKeyFormat.PuTTYv3)));
+        }
+
+        [Test]
         public void TestPuttyMacCoversUtf8Comment()
         {
             // regression: the Private-MAC was computed over an ASCII-mangled comment while the file carries UTF-8
